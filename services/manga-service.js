@@ -7,7 +7,8 @@ module.exports.getLatestManga = async (req, res) => {
 
   var c = new Crawler({
     rateLimit: 1000,
-    referer: "https://komikcast.com/",
+    referer:
+      "https://komikcast.com/daftar-komik/page/1/?sortby=update&type=manga",
     headers: {
       accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -96,7 +97,8 @@ module.exports.getMangaByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
-    referer: "https://komikcast.com/",
+    referer:
+      "https://komikcast.com/daftar-komik/page/1/?sortby=update&type=manga",
     headers: {
       accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -184,7 +186,8 @@ module.exports.getMangaChapterByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
-    referer: "https://komikcast.com/",
+    referer:
+      "https://komikcast.com/daftar-komik/page/1/?sortby=update&type=manga",
     headers: {
       accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
