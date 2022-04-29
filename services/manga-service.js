@@ -7,6 +7,7 @@ module.exports.getLatestManga = async (req, res) => {
 
   var c = new Crawler({
     rateLimit: 1000,
+    http2: true,
     // This will be called for each crawled page
     callback: function (error, result, done) {
       const mangaList = [];
@@ -84,6 +85,7 @@ module.exports.getMangaByParam = async (req, res) => {
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
   const c = new Crawler({
+    http2: true,
     maxConnections: 16,
     // This will be called for each crawled page
     callback: (error, result, done) => {
@@ -170,6 +172,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
+    http2: true,
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
