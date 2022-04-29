@@ -171,7 +171,7 @@ module.exports.getAnimeByParam = async (req, res) => {
             synopsis: sinopsis,
             episode_navigation: episodeNavigation,
             video_embed_links: videoLinks,
-            message: `Main Link can only be opened via webview, while the others (resolution based) can be parsed using ${url}/link`,
+            message: `Main Link can only be opened via webview, while the others (resolution based) can be parsed using ${url}/video-direct-link`,
           },
         });
       }
