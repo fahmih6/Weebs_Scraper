@@ -7,16 +7,7 @@ module.exports.getLatestManga = async (req, res) => {
 
   var c = new Crawler({
     rateLimit: 1000,
-    referer:
-      "https://komikcast.com/daftar-komik/page/1/?sortby=update&type=manga",
-    headers: {
-      accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-      cookie:
-        " __cf_bm=pdxJdp530rKIJgWCWmDW433I84dSZfSPIcbKaGvARd0-1651253972-0-ATYwAWDNw3hHfVX6aM84wkk7DAiY7F3+kMCNwTBcr94Ms+lLt4ejfcgS1oT26kOgOkXCyETWOAO4RX3kV8V6d8zHjAwEMGLpAro0pBjRrzFVd3uUGChqBa0/uUxobA0Ctw==",
-    },
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36",
+    maxConnections: 1,
     // This will be called for each crawled page
     callback: function (error, result, done) {
       const mangaList = [];
@@ -26,7 +17,7 @@ module.exports.getLatestManga = async (req, res) => {
       } else {
         var $ = result.$;
 
-        console.log(result.request.headers);
+        console.log($.html());
 
         const mangaCount = $(".list-update_items-wrapper").find(
           ".list-update_item"
@@ -97,16 +88,6 @@ module.exports.getMangaByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
-    referer:
-      "https://komikcast.com/daftar-komik/page/1/?sortby=update&type=manga",
-    headers: {
-      accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-      cookie:
-        " __cf_bm=pdxJdp530rKIJgWCWmDW433I84dSZfSPIcbKaGvARd0-1651253972-0-ATYwAWDNw3hHfVX6aM84wkk7DAiY7F3+kMCNwTBcr94Ms+lLt4ejfcgS1oT26kOgOkXCyETWOAO4RX3kV8V6d8zHjAwEMGLpAro0pBjRrzFVd3uUGChqBa0/uUxobA0Ctw==",
-    },
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36",
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
@@ -186,16 +167,6 @@ module.exports.getMangaChapterByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
-    referer:
-      "https://komikcast.com/daftar-komik/page/1/?sortby=update&type=manga",
-    headers: {
-      accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-      cookie:
-        " __cf_bm=pdxJdp530rKIJgWCWmDW433I84dSZfSPIcbKaGvARd0-1651253972-0-ATYwAWDNw3hHfVX6aM84wkk7DAiY7F3+kMCNwTBcr94Ms+lLt4ejfcgS1oT26kOgOkXCyETWOAO4RX3kV8V6d8zHjAwEMGLpAro0pBjRrzFVd3uUGChqBa0/uUxobA0Ctw==",
-    },
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36",
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
