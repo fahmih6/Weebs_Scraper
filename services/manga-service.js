@@ -7,7 +7,7 @@ module.exports.getLatestManga = async (req, res) => {
 
   var c = new Crawler({
     rateLimit: 1000,
-    http2: true,
+    referer: "https://komikcast.com/",
     // This will be called for each crawled page
     callback: function (error, result, done) {
       const mangaList = [];
@@ -85,8 +85,8 @@ module.exports.getMangaByParam = async (req, res) => {
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
   const c = new Crawler({
-    http2: true,
     maxConnections: 16,
+    referer: "https://komikcast.com/",
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
@@ -104,12 +104,6 @@ module.exports.getMangaByParam = async (req, res) => {
         const mangaThumbnail = $(
           ".komik_info-content .komik_info-content-thumbnail img"
         ).attr("src");
-        const mangaReleasedAt = $(
-          ".komik_info-content-meta .komik_info-content-info-release"
-        )
-          .text()
-          .split(":\n")[1]
-          .trim();
         const mangaMeta = {};
         const mangaGenre = [];
         const mangaSynopsis = $(
@@ -172,7 +166,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
-    http2: true,
+    referer: "https://komikcast.com/",
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
