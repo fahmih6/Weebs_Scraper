@@ -33,7 +33,6 @@ module.exports.getLatestManga = async (req, res) => {
               .find(".list-update_item-image")
               .find(".wp-post-image")
               .attr("data-cfsrc");
-            console.log(mangaThumbnail);
             const mangaParam = $(el).find("a").attr("href").split("/")[4];
             const mangaRating = $(el)
               .find(".list-update_item-info")
@@ -49,6 +48,8 @@ module.exports.getLatestManga = async (req, res) => {
               detail_url: `${url}/${mangaParam}`,
             });
           });
+
+        console.log(result.request.uri.href);
 
         return res.json({
           next_page: keyword
