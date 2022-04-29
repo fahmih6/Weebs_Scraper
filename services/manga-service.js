@@ -8,6 +8,7 @@ module.exports.getLatestManga = async (req, res) => {
   var c = new Crawler({
     rateLimit: 1000,
     maxConnections: 1,
+    referer: "https://komikcast.com/",
     // This will be called for each crawled page
     callback: function (error, result, done) {
       const mangaList = [];
@@ -16,8 +17,6 @@ module.exports.getLatestManga = async (req, res) => {
         res.json(error);
       } else {
         var $ = result.$;
-
-        console.log($.html());
 
         const mangaCount = $(".list-update_items-wrapper").find(
           ".list-update_item"
@@ -88,6 +87,7 @@ module.exports.getMangaByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
+    referer: "https://komikcast.com/",
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
@@ -167,6 +167,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
 
   const c = new Crawler({
     maxConnections: 16,
+    referer: "https://komikcast.com/",
     // This will be called for each crawled page
     callback: (error, result, done) => {
       if (error) {
