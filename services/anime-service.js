@@ -189,20 +189,11 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
 
   if (body.hasOwnProperty("url")) {
     const options = {
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process", // <- this one doesn't works in Windows
-        "--disable-gpu",
-      ],
-      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     };
     const browser = await puppeteer.launch(options);
     const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(60000);
     // Go to URLs
     await page.goto(body["url"]);
 
