@@ -59,12 +59,14 @@ module.exports.getLatestManga = async (req, res) => {
             prev = `1&s=${keyword}`;
           }
 
-          let pageKeyword = nextLink;
-          pageKeyword = pageKeyword
-            .replace("/page/", "")
-            .replace("/?post_type=manga", "");
+          if (nextLink != undefined) {
+            let pageKeyword = nextLink;
+            pageKeyword = pageKeyword
+              .replace("/page/", "")
+              .replace("/?post_type=manga", "");
 
-          next = `${pageKeyword}`;
+            next = `${pageKeyword}`;
+          }
         } else {
           prev =
             prevLink != undefined
