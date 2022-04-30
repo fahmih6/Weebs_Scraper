@@ -151,7 +151,7 @@ module.exports.getMangaByParam = async (req, res) => {
 
             mangaChapters.push({
               chapter: chapterNumber,
-              slug: chapterSlug,
+              param: chapterSlug,
               release: chapterRelease,
               detail_url: `${url}/chapter/${chapterSlug}`,
             });
