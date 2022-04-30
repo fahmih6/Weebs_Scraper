@@ -198,6 +198,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
           const imageUrl = $(el).attr("src");
 
           if (imageUrl != undefined) {
+            imageUrl.replace("img.komiku.id", "cdn.komiku.co.id");
             chapterImages.push(imageUrl);
           }
         });
