@@ -191,7 +191,6 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
     const options = {
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
       ignoreDefaultArgs: ["--disable-extensions"],
-      slowMo: 100,
     };
     const browser = await puppeteer.launch(options);
     const page = await browser.newPage();
