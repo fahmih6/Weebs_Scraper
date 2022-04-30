@@ -7,8 +7,5 @@ router.get("/:param", (req, res) => animeService.getAnimeByParam(req, res));
 router.post("/video-direct-link", (req, res) =>
   animeService.getAnimeDirectLinks(req, res)
 );
-// router.get("/chapter/:param", (req, res) =>
-//   animeService.getMangaChapterByParam(req, res)
-// );
 
 module.exports = router;

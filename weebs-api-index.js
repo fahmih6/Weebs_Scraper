@@ -13,6 +13,8 @@ app.use(express.json());
 
 app.use("/api/komikcast/", require("./routes/manga-route.js"));
 
+app.use("/api/komiku/", require("./routes/komiku-route.js"));
+
 app.use("/api/anoboy/", require("./routes/anime-route.js"));
 
 app.listen(port, () => console.log(`server running on port ${port}`));
