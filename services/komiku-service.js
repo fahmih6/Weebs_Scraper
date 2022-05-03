@@ -34,8 +34,13 @@ module.exports.getLatestManga = async (req, res) => {
               .attr("href")
               .split("/")[4];
 
+            let trimmedTitle = mangaTitle;
+            if (mangaTitle) {
+              trimmedTitle = mangaTitle.trim();
+            }
+
             mangaList.push({
-              title: mangaTitle,
+              title: trimmedTitle,
               thumbnail: mangaThumbnail,
               param: mangaParam,
               detail_url: `${url}/${mangaParam}`,
@@ -158,9 +163,14 @@ module.exports.getMangaByParam = async (req, res) => {
           }
         });
 
+        let trimmedTitle = mangaTitle;
+        if (mangaTitle) {
+          trimmedTitle = mangaTitle.trim();
+        }
+
         res.json({
           data: {
-            title: mangaTitle,
+            title: trimmedTitle,
             thumbnail: mangaThumbnail,
             genre: mangaGenre,
             synopsis: mangaSynopsis,
