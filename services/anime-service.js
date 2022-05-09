@@ -144,7 +144,9 @@ module.exports.getAnimeByParam = async (req, res) => {
                 $(el).text().includes("720") &&
                 !mirrorURL.includes("token=none")
               ) {
-                videoLinks[0]["720P"] = mirrorURL;
+                videoLinks.push({
+                  "720P": mirrorURL,
+                });
               }
             });
 
