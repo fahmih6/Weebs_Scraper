@@ -121,15 +121,33 @@ module.exports.getAnimeByParam = async (req, res) => {
         // Video Links
         var videoLinks = [];
 
+        // Mirrors
+        var mirrors = [];
+
         // Main links
         var mainLink = $("#mediaplayer").attr("src");
         videoLinks.push({
-          main_link: mainLink,
+          "360P": mainLink,
         });
 
         const mirrorCount = $(".vmiror").length;
 
         if (mirrorCount >= 1) {
+          // Main Link but 720p
+          $(".vmiror")
+            .eq(0)
+            .find("a")
+            .each((i, el) => {
+              let mirrorURL = $(el).data("video");
+
+              if (
+                $(el).text().includes("720") &&
+                !mirrorURL.includes("token=none")
+              ) {
+                videoLinks[0]["720P"] = mirrorURL;
+              }
+            });
+
           // Use mirrors
           $(".vmiror")
             .eq(1)
@@ -138,10 +156,13 @@ module.exports.getAnimeByParam = async (req, res) => {
               let mirrorURL = $(el).data("video");
               let reso = $(el).text();
 
-              // Create a new map
-              let mirrorMap = {};
-              mirrorMap[reso] = `${process.env.ANOBOY_LINK}${mirrorURL}`;
-              videoLinks.push(mirrorMap);
+              // Excludes all non-available resolutions
+              if (!mirrorURL.includes("data=none")) {
+                // Create a new map
+                let mirrorMap = {};
+                mirrorMap[reso] = `${process.env.ANOBOY_LINK}${mirrorURL}`;
+                mirrors.push(mirrorMap);
+              }
             });
         }
 
@@ -161,7 +182,18 @@ module.exports.getAnimeByParam = async (req, res) => {
           let link = $(el).attr("href");
           let episodeName = $(el).attr("title");
 
-          episodeNavigation.push({ nav_name: episodeName, nav_link: link });
+          if (link != undefined) {
+            let paramArray = link.split("/");
+            paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
+
+            // Param
+            let param = paramArray.join("~");
+
+            episodeNavigation.push({
+              nav_name: episodeName,
+              nav_link: `${url}/${param}`,
+            });
+          }
         });
 
         // Return the json data
@@ -171,6 +203,7 @@ module.exports.getAnimeByParam = async (req, res) => {
             synopsis: sinopsis,
             episode_navigation: episodeNavigation,
             video_embed_links: videoLinks,
+            video_mirrors: mirrors,
             message: `Main Link can only be opened via webview, while the others (resolution based) can be parsed using ${url}/video-direct-link`,
           },
         });
