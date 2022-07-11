@@ -2,6 +2,48 @@ const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
 
+// module.exports.getDorama = async (req, res) => {
+//   var c = new Crawler({
+//     // This will be called for each crawled page
+//     callback: (error, result, done) => {
+//       if (error) {
+//         console.log(error);
+
+//         res.json({
+//           error: error.message,
+//         });
+//       } else {
+//         var $ = result.$;
+
+//         var list = [];
+
+//         $(".ep")
+//           .find(".linkstream")
+//           .each((i, el) => {
+//             let map = {};
+
+//             const text = $(el).find("h4").text();
+//             const link = $(el).find("a").attr("link");
+
+//             map[text] = link;
+
+//             list.push(map);
+//           });
+
+//         res.json({
+//           episodes: list,
+//         });
+//       }
+
+//       done();
+//     },
+//   });
+
+//   c.queue(
+//     "https://dorama.doramaindo.ai/ase-to-sekken-2022-subtitle-indonesia.html"
+//   );
+// };
+
 module.exports.getLatestAnime = async (req, res) => {
   const page = req.query.page || 1;
   const keyword = req.query.s;
@@ -126,9 +168,16 @@ module.exports.getAnimeByParam = async (req, res) => {
 
         // Main links
         var mainLink = $("#mediaplayer").attr("src");
-        videoLinks.push({
-          "360P": mainLink,
-        });
+
+        if (mainLink?.includes("/uploads")) {
+          videoLinks.push({
+            "480P": `${process.env.ANOBOY_LINK}${mainLink}`,
+          });
+        } else {
+          videoLinks.push({
+            "360P": mainLink,
+          });
+        }
 
         const mirrorCount = $(".vmiror").length;
 
@@ -144,9 +193,15 @@ module.exports.getAnimeByParam = async (req, res) => {
                 $(el).text().includes("720") &&
                 !mirrorURL.includes("token=none")
               ) {
-                videoLinks.push({
-                  "720P": mirrorURL,
-                });
+                if (mainLink?.includes("/uploads")) {
+                  videoLinks.push({
+                    "720P": `${process.env.ANOBOY_LINK}${mainLink}`,
+                  });
+                } else {
+                  videoLinks.push({
+                    "720P": mirrorURL,
+                  });
+                }
               }
             });
 
@@ -227,39 +282,46 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
       ignoreDefaultArgs: ["--disable-extensions"],
     };
-    const browser = await puppeteer.launch(options);
-    const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(60000);
-    // Go to URLs
-    await page.goto(body["url"]);
 
-    // Wait a bit
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      const browser = await puppeteer.launch(options);
+      const page = await browser.newPage();
+      await page.setDefaultNavigationTimeout(60000);
+      // Go to URLs
+      await page.goto(body["url"]);
 
-    // Click the page
-    page.click(".jw-video");
+      // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Wait a bit
-    await new Promise((resolve) => setTimeout(resolve, 100));
+      // Click the page
+      page.click(".jw-video");
 
-    /// Evaluate
-    let link = await page.evaluate(`$(".jw-video").attr("src")`);
+      // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Close the browser
-    await browser.close();
+      /// Evaluate
+      let link = await page.evaluate(`$(".jw-video").attr("src")`);
 
-    // If link is found, then return it.
-    if (link != undefined) {
-      res.json({
-        link: link,
-      });
-    } else {
-      res.json({
-        error: "Error getting link, please try again.",
+      // Close the browser
+      await browser.close();
+
+      // If link is found, then return it.
+      if (link != undefined) {
+        return res.json({
+          link: link,
+        });
+      } else {
+        return res.json({
+          error: "Error getting link, please try again.",
+        });
+      }
+    } catch (error) {
+      return res.json({
+        error: error,
       });
     }
   } else {
-    res.json({
+    return res.json({
       error: "URL is not specified, cannot find video data.",
     });
   }
