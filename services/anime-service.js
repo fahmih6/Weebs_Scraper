@@ -193,9 +193,9 @@ module.exports.getAnimeByParam = async (req, res) => {
                 $(el).text().includes("720") &&
                 !mirrorURL.includes("token=none")
               ) {
-                if (mainLink?.includes("/uploads")) {
+                if (mirrorURL?.includes("/uploads")) {
                   videoLinks.push({
-                    "720P": `${process.env.ANOBOY_LINK}${mainLink}`,
+                    "720P": `${process.env.ANOBOY_LINK}${mirrorURL}`,
                   });
                 } else {
                   videoLinks.push({
