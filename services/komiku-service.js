@@ -76,14 +76,16 @@ module.exports.getLatestManga = async (req, res) => {
           prev =
             prevLink != undefined
               ? prevLink
-                  .replace("/pustaka/", "")
+                  .replace("/rekomendasi/", "")
+                  .replace("other", "")
                   .replace("page/", "")
                   .replace("/", "")
               : null;
           next =
             nextLink != undefined
               ? nextLink
-                  .replace("/pustaka/", "")
+                  .replace("/rekomendasi/", "")
+                  .replace("other", "")
                   .replace("page/", "")
                   .replace("/", "")
               : null;
@@ -110,9 +112,9 @@ module.exports.getLatestManga = async (req, res) => {
       );
     }
   } else if (page === 1) {
-    c.queue(`https://data.komiku.id/pustaka/`);
+    c.queue(`https://data.komiku.id/other/rekomendasi/`);
   } else {
-    c.queue(`https://data.komiku.id/pustaka/page/${page}/`);
+    c.queue(`https://data.komiku.id/other/rekomendasi/page/${page}/`);
   }
 };
 
