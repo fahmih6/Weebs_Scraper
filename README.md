@@ -27,9 +27,9 @@ npm run start
   ```
   https://weebs-scraper.herokuapp.com/api/anoboy
   ```
-  - [Search Certain Anime](https://weebs-scraper.herokuapp.com/api/anoboy?s=Kaguya)
+  - [Search Certain Anime](https://weebs-scraper.herokuapp.com/api/anoboy?s=kaguya)
   ```
-  https://weebs-scraper.herokuapp.com/api/anoboy?s=Kaguya
+  https://weebs-scraper.herokuapp.com/api/anoboy?s=kaguya
   ```
   - [Get Anime Detail as well as the stream link](http://weebs-scraper.herokuapp.com/api/anoboy/2022~06~kaguya-sama-wa-kokurasetai-season-3-episode-13-tamat~)
   ```
