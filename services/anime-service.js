@@ -2,48 +2,6 @@ const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
 
-// module.exports.getDorama = async (req, res) => {
-//   var c = new Crawler({
-//     // This will be called for each crawled page
-//     callback: (error, result, done) => {
-//       if (error) {
-//         console.log(error);
-
-//         res.json({
-//           error: error.message,
-//         });
-//       } else {
-//         var $ = result.$;
-
-//         var list = [];
-
-//         $(".ep")
-//           .find(".linkstream")
-//           .each((i, el) => {
-//             let map = {};
-
-//             const text = $(el).find("h4").text();
-//             const link = $(el).find("a").attr("link");
-
-//             map[text] = link;
-
-//             list.push(map);
-//           });
-
-//         res.json({
-//           episodes: list,
-//         });
-//       }
-
-//       done();
-//     },
-//   });
-
-//   c.queue(
-//     "https://dorama.doramaindo.ai/ase-to-sekken-2022-subtitle-indonesia.html"
-//   );
-// };
-
 module.exports.getLatestAnime = async (req, res) => {
   const page = req.query.page || 1;
   const keyword = req.query.s;
@@ -136,9 +94,17 @@ module.exports.getLatestAnime = async (req, res) => {
   });
 
   if (keyword) {
-    c.queue(`${process.env.ANOBOY_LINK}/page/${page}/?s=${keyword}`);
+    if (page == 1) {
+      c.queue(`${process.env.ANOBOY_LINK}/?s=${keyword}`);
+    } else {
+      c.queue(`${process.env.ANOBOY_LINK}/page/${page}/?s=${keyword}`);
+    }
   } else {
-    c.queue(`${process.env.ANOBOY_LINK}/page/${page}/`);
+    if (page == 1) {
+      c.queue(`${process.env.ANOBOY_LINK}/`);
+    } else {
+      c.queue(`${process.env.ANOBOY_LINK}/page/${page}/`);
+    }
   }
 };
 
