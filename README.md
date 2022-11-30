@@ -8,7 +8,7 @@ Web scraper for Anoboy, Komiku, and Komikcast. Build using Node JS.
 
 2. Setup `.env` for Anoboy Link (Anoboy Link often get changed time to time, so make sure to check it regularly). Example : 
 ```
-ANOBOY="Enter Anoboy Link Here"
+ANOBOY_LINK="Enter Anoboy Link Here"
 ```
 
 3. Run `npm install`.
