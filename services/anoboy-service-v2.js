@@ -405,6 +405,10 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
     }
   }
 
+  /// Browser Page
+  await browserPage.close();
+  await newPage.close();
+
   // Return the json data
   res.json({
     data: {
