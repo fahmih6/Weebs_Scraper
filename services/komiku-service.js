@@ -136,10 +136,10 @@ module.exports.getMangaByParam = async (req, res) => {
       } else {
         const $ = result.$;
 
-        const mangaTitle = $("#Judul h1").text();
+        const mangaTitle = $("#Judul h1").text().trim();
         const mangaThumbnail = $(".ims img").attr("src");
         const mangaGenre = [];
-        const mangaSynopsis = $("#Judul").find(".desc").text();
+        const mangaSynopsis = $("#Judul").find(".desc").text().trim();
         const mangaChapters = [];
 
         $(".genre li a").each((i, el) => {
@@ -148,7 +148,7 @@ module.exports.getMangaByParam = async (req, res) => {
 
         $("#Daftar_Chapter tbody tr").each((i, el) => {
           if (i > 0) {
-            const chapterNumber = $(el).find(".judulseries").text();
+            const chapterNumber = $(el).find(".judulseries").text().trim();
             const chapterSlug = $(el)
               .find(".judulseries")
               .find("a")
