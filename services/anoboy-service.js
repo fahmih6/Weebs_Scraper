@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
@@ -243,27 +244,21 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
   const body = req.body;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
+  const options = {
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
+    ignoreDefaultArgs: ["--disable-extensions"],
+  };
+
+  const browser = await puppeteer.launch(options);
+  const page = await browser.newPage();
+
   if (body.hasOwnProperty("url")) {
-    const options = {
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-      ignoreDefaultArgs: ["--disable-extensions"],
-    };
-
     try {
-      const browser = await puppeteer.launch(options);
-      const page = await browser.newPage();
-      await page.setDefaultNavigationTimeout(60000);
       // Go to URLs
-      await page.goto(body["url"]);
-
-      // Wait a bit
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Click the page
-      page.click(".jw-video");
-
-      // Wait a bit
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await page.goto(body["url"], {
+        waitUntil: "networkidle2",
+        timeout: 30000,
+      });
 
       /// Evaluate
       let link = await page.evaluate(`$(".jw-video").attr("src")`);
@@ -286,6 +281,41 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
         error: error,
       });
     }
+  } else if (body.hasOwnProperty("urls")) {
+    var results = [];
+
+    for (let index = 0; index < body["urls"].length; index++) {
+      const element = body["urls"][index];
+
+      try {
+        // Go to URLs
+        await page.goto(element, {
+          waitUntil: "networkidle2",
+          timeout: 30000,
+        });
+
+        /// Evaluate
+        let link = await page.evaluate(`$(".jw-video").attr("src")`);
+
+        // If link is found, then return it.
+        if (link != undefined) {
+          results.push(link);
+        } else {
+          results.push(link);
+        }
+      } catch (error) {
+        return res.json({
+          error: error,
+        });
+      }
+    }
+
+    // Close the browser
+    await browser.close();
+
+    return res.json({
+      links: results,
+    });
   } else {
     return res.json({
       error: "URL is not specified, cannot find video data.",
