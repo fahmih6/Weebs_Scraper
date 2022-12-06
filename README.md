@@ -6,9 +6,10 @@ Web scraper for Anoboy, Komiku, and Komikcast. Build using Node JS.
 
 1. Clone the repository, and navigate to the repository directory.
 
-2. Setup `.env` for Anoboy Link (Anoboy Link often get changed time to time, so make sure to check it regularly). Example : 
+2. Setup `.env` for Anoboy Link and Doramaindo (Anoboy and Doramaindo Link often get changed time to time, so make sure to check it regularly). Example : 
 ```
 ANOBOY_LINK="Enter Anoboy Link Here"
+DORAMAINDO_LINK="Enter Doramaindo Link Here"
 ```
 
 3. Run `npm install`.
