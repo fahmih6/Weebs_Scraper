@@ -1,6 +1,6 @@
 # Weebs Scraper
 
-Web scraper for Anoboy, Komiku, and Komikcast. Build using Node JS.
+Web scraper for Anoboy, Doramaindo, Komiku, and Komikcast. Build using Node JS.
 
 # Getting Started
 
