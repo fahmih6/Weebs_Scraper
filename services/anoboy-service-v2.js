@@ -1,3 +1,4 @@
+// @ts-nocheck
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
 
@@ -189,76 +190,8 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
   // Episode navigation
   var episodeNavigation = [];
 
-  // Main links
-  let mainLink = "";
-  var mainLinkElement = await browserPage.$("#mediaplayer");
-  if (mainLinkElement) {
-    mainLink = await mainLinkElement.evaluate((el) => el.getAttribute("src"));
-  }
-
   /// New Page
   const newPage = await browser.newPage();
-
-  if (mainLink?.includes("/uploads")) {
-    // Push embed video url
-    videoEmbedLinks.push({
-      "480P": `${process.env.ANOBOY_LINK}${mainLink}`,
-    });
-
-    /// Get the real video url
-    await newPage.goto(`${process.env.ANOBOY_LINK}${mainLink}`, pageOptions);
-    const frame = await newPage.$(".jw-video");
-    if (frame) {
-      const url = await frame.evaluate((el) => el.getAttribute("src"));
-      /// Push real video url
-      videoLinks.push({
-        "360P": { play_url: url },
-      });
-    }
-  } else if (mainLink.includes("www.sharezweb.com")) {
-    /// Push embed url directly from blogger link
-    videoEmbedLinks.push({
-      "360P": mainLink,
-    });
-
-    /// Get the real video url
-    await newPage.goto(mainLink, pageOptions);
-    const frameElement = await newPage.$(".plyr__video-wrapper");
-    if (frameElement) {
-      const link = await frameElement.evaluate((el) =>
-        el.getElementsByTagName("video").item(0).getAttribute("src")
-      );
-      /// Push real video url
-      videoLinks.push({
-        "360P": link,
-      });
-    }
-  } else {
-    /// Push embed link directly from blogger
-    videoEmbedLinks.push({
-      "360P": mainLink,
-    });
-
-    /// Get the real video url
-    await newPage.goto(mainLink, pageOptions);
-    const frame = await newPage.mainFrame();
-    const content = await frame.content();
-    const firstIndex = content.search(`{"thumbnail":`);
-    const lastIndex = content.search("</script></head>");
-    const frameData = content.substring(firstIndex, lastIndex);
-    /// Parse to json
-    let frameDataJson = {
-      streams: [{ play_url: "" }],
-    };
-    if (frameData) {
-      frameDataJson = JSON.parse(frameData);
-    }
-
-    /// Push real video url
-    videoLinks.push({
-      "360P": frameDataJson["streams"][0]["play_url"],
-    });
-  }
 
   /// Mirror count
   const mirrorCount = (await browserPage.$$(".vmiror")).length;
@@ -268,12 +201,17 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
     const vMirror = await browserPage.$$(".vmiror");
 
     /// First index
-    const links = await vMirror[0].$$("a");
+    let aElements = [];
+    for (let index = 0; index < vMirror.length; index++) {
+      const element = vMirror[index];
+      const links = await element.$$("a");
+      aElements.push(...links);
+    }
 
     /// Loop through all links
-    for (const link in links) {
-      if (Object.hasOwnProperty.call(links, link)) {
-        const element = links[link];
+    for (const link in aElements) {
+      if (Object.hasOwnProperty.call(aElements, link)) {
+        const element = aElements[link];
 
         /// Resolution Text
         const text = await element.evaluate((el) => el.textContent);
@@ -282,14 +220,18 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
           el.getAttribute("data-video")
         );
 
-        // If text includes 720P and embed url doesn't contain token=none
-        if (text.includes("720") && !embedUrl.includes("token=none")) {
+        // If text includes 720, 360, or 480 and embed url doesn't contain token=none
+        if (
+          text.includes("720") ||
+          text.includes("360") ||
+          text.includes("480")
+        ) {
           /// If video wasn't uploaded to the blogger, push certain link
-          if (embedUrl?.includes("/uploads")) {
+          if (embedUrl?.includes("/uploads/stream")) {
             /// Push embed url directly from blogger link
-            videoEmbedLinks.push({
-              "720P": `${process.env.ANOBOY_LINK}${embedUrl}`,
-            });
+            const data = {};
+            data[text] = `${process.env.ANOBOY_LINK}${embedUrl}`;
+            videoEmbedLinks.push(data);
 
             /// Get the real video url
             await newPage.goto(
@@ -299,16 +241,16 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
             const frame = await newPage.$(".jw-video");
             if (frame) {
               const url = await frame.evaluate((el) => el.getAttribute("src"));
+              const data = {};
+              data[text] = url;
               /// Push real video url
-              videoLinks.push({
-                "720P": { play_url: url },
-              });
+              videoLinks.push(data);
             }
           } else if (embedUrl.includes("www.sharezweb.com")) {
             /// Push embed url directly from blogger link
-            videoEmbedLinks.push({
-              "720P": embedUrl,
-            });
+            const data = {};
+            data[text] = embedUrl;
+            videoEmbedLinks.push(data);
 
             /// Get the real video url
             await newPage.goto(embedUrl, pageOptions);
@@ -319,35 +261,10 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
               );
 
               /// Push real video url
-              videoLinks.push({
-                "720P": link,
-              });
+              const data = {};
+              data[text] = link;
+              videoLinks.push(data);
             }
-          } else {
-            /// Push embed url directly from blogger link
-            videoEmbedLinks.push({
-              "720P": embedUrl,
-            });
-
-            /// Get the real video url
-            await newPage.goto(embedUrl, pageOptions);
-            const frame = await newPage.mainFrame();
-            const content = await frame.content();
-            const firstIndex = content.search(`{"thumbnail":`);
-            const lastIndex = content.search("</script></head>");
-            const frameData = content.substring(firstIndex, lastIndex);
-            /// Parse to json
-            let frameDataJson = {
-              streams: [{ play_url: "" }],
-            };
-            if (frameData) {
-              frameDataJson = JSON.parse(frameData);
-            }
-
-            /// Push real video url
-            videoLinks.push({
-              "720P": frameDataJson["streams"][0]["play_url"],
-            });
           }
         }
       }
@@ -416,7 +333,7 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
       synopsis: sinopsis,
       episode_navigation: episodeNavigation,
       video_embed_links: videoEmbedLinks,
-      video_links: videoLinks,
+      video_direct_links: videoLinks,
     },
   });
 };
