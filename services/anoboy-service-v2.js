@@ -227,7 +227,10 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
           text.includes("480")
         ) {
           /// If video wasn't uploaded to the blogger, push certain link
-          if (embedUrl?.includes("/uploads/stream")) {
+          if (
+            embedUrl?.includes("/uploads/stream") &&
+            !embedUrl.includes("data=none")
+          ) {
             /// Push embed url directly from blogger link
             const data = {
               resolution: text,
