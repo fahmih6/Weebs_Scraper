@@ -45,7 +45,8 @@ module.exports.getLatestAnime = async (req, res) => {
             let param = paramArray.join("~");
 
             // Image
-            let image = $(el).find("amp-img").attr("src");
+            let image =
+              `${process.env.ANOBOY_LINK}` + $(el).find("amp-img").attr("src");
 
             // Upload time
             let uploadTime = $(el).find(".jamup").text();
