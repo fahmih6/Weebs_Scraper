@@ -139,11 +139,13 @@ module.exports.getAnimeByParam = async (req, res) => {
 
         if (mainLink?.includes("/uploads")) {
           videoLinks.push({
-            "480P": `${process.env.ANOBOY_LINK}${mainLink}`,
+            resolution: "480P",
+            link: `${process.env.ANOBOY_LINK}${mainLink}`,
           });
         } else {
           videoLinks.push({
-            "360P": mainLink,
+            resolution: "360P",
+            link: mainLink,
           });
         }
 
@@ -163,11 +165,13 @@ module.exports.getAnimeByParam = async (req, res) => {
               ) {
                 if (mirrorURL?.includes("/uploads")) {
                   videoLinks.push({
-                    "720P": `${process.env.ANOBOY_LINK}${mirrorURL}`,
+                    resolution: "720P",
+                    link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
                   });
                 } else {
                   videoLinks.push({
-                    "720P": mirrorURL,
+                    resolution: "720P",
+                    link: mirrorURL,
                   });
                 }
               }
@@ -184,8 +188,10 @@ module.exports.getAnimeByParam = async (req, res) => {
               // Excludes all non-available resolutions
               if (!mirrorURL.includes("data=none")) {
                 // Create a new map
-                let mirrorMap = {};
-                mirrorMap[reso] = `${process.env.ANOBOY_LINK}${mirrorURL}`;
+                let mirrorMap = {
+                  resolution: reso,
+                  link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
+                };
                 mirrors.push(mirrorMap);
               }
             });

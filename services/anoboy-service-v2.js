@@ -229,8 +229,10 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
           /// If video wasn't uploaded to the blogger, push certain link
           if (embedUrl?.includes("/uploads/stream")) {
             /// Push embed url directly from blogger link
-            const data = {};
-            data[text] = `${process.env.ANOBOY_LINK}${embedUrl}`;
+            const data = {
+              resolution: text,
+              link: `${process.env.ANOBOY_LINK}${embedUrl}`,
+            };
             videoEmbedLinks.push(data);
 
             /// Get the real video url
@@ -241,15 +243,19 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
             const frame = await newPage.$(".jw-video");
             if (frame) {
               const url = await frame.evaluate((el) => el.getAttribute("src"));
-              const data = {};
-              data[text] = url;
+              const data = {
+                resolution: text,
+                link: url,
+              };
               /// Push real video url
               videoLinks.push(data);
             }
           } else if (embedUrl.includes("www.sharezweb.com")) {
             /// Push embed url directly from blogger link
-            const data = {};
-            data[text] = embedUrl;
+            const data = {
+              resolution: text,
+              link: embedUrl,
+            };
             videoEmbedLinks.push(data);
 
             /// Get the real video url
@@ -261,8 +267,10 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
               );
 
               /// Push real video url
-              const data = {};
-              data[text] = link;
+              const data = {
+                resolution: text,
+                link: link,
+              };
               videoLinks.push(data);
             }
           }
