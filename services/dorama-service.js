@@ -1,16 +1,13 @@
 // @ts-nocheck
 const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
+const PuppeteerBrowserOptions = require("../global/puppeteer_browser_options.js");
 const arrayHelper = require("../helper/array-helper.js");
+const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
 
 const puppeteerOptions = {
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
   ignoreDefaultArgs: ["--disable-extensions"],
-};
-
-const pageOptions = {
-  waitUntil: "domcontentloaded",
-  timeout: 0,
 };
 
 module.exports.getDorama = async (req, res) => {
@@ -80,7 +77,7 @@ module.exports.getDoramaDetail = async (req, res) => {
   const browserPage = await browser.newPage();
   await browserPage.goto(
     `${process.env.DORAMAINDO_LINK}/${tempParam}`,
-    pageOptions
+    PuppeteerBrowserOptions.fastLoadOptions
   );
 
   /// Episode links
@@ -169,11 +166,11 @@ module.exports.getVideoLink = async (req, res) => {
   if (body.hasOwnProperty("url")) {
     const url = body["url"];
     /// Run Browser
-    const browser = await puppeteer.launch(puppeteerOptions);
+    const browser = await PuppeteerSingleton.getBrowser();
 
     /// Page
     const browserPage = await browser.newPage();
-    await browserPage.goto(url, pageOptions);
+    await browserPage.goto(url, PuppeteerBrowserOptions.fullLoadOptions);
     const lastUrl = await browserPage.$eval("#dlbutton", (el) =>
       el.getAttribute("href")
     );
