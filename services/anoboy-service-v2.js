@@ -4,19 +4,6 @@ const arrayHelper = require("../helper/array-helper.js");
 const PuppeteerBrowserOptions = require("../global/puppeteer_browser_options.js");
 const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
 
-const puppeteerOptions = {
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-accelerated-2d-canvas",
-    "--no-first-run",
-    "--no-zygote",
-    "--disable-gpu",
-    "--devtools=false",
-  ],
-};
-
 /// Get latest anime v2
 module.exports.getLatestAnimeV2 = async (req, res) => {
   const page = req.query.page || 1;

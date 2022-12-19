@@ -5,11 +5,6 @@ const PuppeteerBrowserOptions = require("../global/puppeteer_browser_options.js"
 const arrayHelper = require("../helper/array-helper.js");
 const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
 
-const puppeteerOptions = {
-  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-  ignoreDefaultArgs: ["--disable-extensions"],
-};
-
 module.exports.getDorama = async (req, res) => {
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
   var c = new Crawler({
