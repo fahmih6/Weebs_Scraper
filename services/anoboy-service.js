@@ -2,6 +2,7 @@
 const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
+const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
 
 module.exports.getLatestAnime = async (req, res) => {
   const page = req.query.page || 1;
@@ -251,12 +252,7 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
   const body = req.body;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
-  const options = {
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-    ignoreDefaultArgs: ["--disable-extensions"],
-  };
-
-  const browser = await puppeteer.launch(options);
+  const browser = await PuppeteerSingleton.getBrowser();
   const page = await browser.newPage();
 
   if (body.hasOwnProperty("url")) {
@@ -317,8 +313,8 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
       }
     }
 
-    // Close the browser
-    await browser.close();
+    // Close the tab
+    await page.close();
 
     return res.json({
       links: results,
