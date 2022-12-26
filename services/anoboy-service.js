@@ -2,6 +2,7 @@
 const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
+const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
 
 module.exports.getLatestAnime = async (req, res) => {
   const page = req.query.page || 1;
@@ -45,7 +46,8 @@ module.exports.getLatestAnime = async (req, res) => {
             let param = paramArray.join("~");
 
             // Image
-            let image = $(el).find("amp-img").attr("src");
+            let image =
+              `${process.env.ANOBOY_LINK}` + $(el).find("amp-img").attr("src");
 
             // Upload time
             let uploadTime = $(el).find(".jamup").text();
@@ -138,11 +140,13 @@ module.exports.getAnimeByParam = async (req, res) => {
 
         if (mainLink?.includes("/uploads")) {
           videoLinks.push({
-            "480P": `${process.env.ANOBOY_LINK}${mainLink}`,
+            resolution: "480P",
+            link: `${process.env.ANOBOY_LINK}${mainLink}`,
           });
         } else {
           videoLinks.push({
-            "360P": mainLink,
+            resolution: "360P",
+            link: mainLink,
           });
         }
 
@@ -162,11 +166,13 @@ module.exports.getAnimeByParam = async (req, res) => {
               ) {
                 if (mirrorURL?.includes("/uploads")) {
                   videoLinks.push({
-                    "720P": `${process.env.ANOBOY_LINK}${mirrorURL}`,
+                    resolution: "720P",
+                    link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
                   });
                 } else {
                   videoLinks.push({
-                    "720P": mirrorURL,
+                    resolution: "720P",
+                    link: mirrorURL,
                   });
                 }
               }
@@ -183,8 +189,10 @@ module.exports.getAnimeByParam = async (req, res) => {
               // Excludes all non-available resolutions
               if (!mirrorURL.includes("data=none")) {
                 // Create a new map
-                let mirrorMap = {};
-                mirrorMap[reso] = `${process.env.ANOBOY_LINK}${mirrorURL}`;
+                let mirrorMap = {
+                  resolution: reso,
+                  link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
+                };
                 mirrors.push(mirrorMap);
               }
             });
@@ -244,12 +252,7 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
   const body = req.body;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
-  const options = {
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-    ignoreDefaultArgs: ["--disable-extensions"],
-  };
-
-  const browser = await puppeteer.launch(options);
+  const browser = await PuppeteerSingleton.getBrowser();
   const page = await browser.newPage();
 
   if (body.hasOwnProperty("url")) {
@@ -310,8 +313,8 @@ module.exports.getAnimeDirectLinks = async (req, res) => {
       }
     }
 
-    // Close the browser
-    await browser.close();
+    // Close the tab
+    await page.close();
 
     return res.json({
       links: results,

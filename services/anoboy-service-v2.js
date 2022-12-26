@@ -1,16 +1,8 @@
 // @ts-nocheck
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
-
-const puppeteerOptions = {
-  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-  ignoreDefaultArgs: ["--disable-extensions"],
-};
-
-const pageOptions = {
-  waitUntil: "networkidle2",
-  timeout: 0,
-};
+const PuppeteerBrowserOptions = require("../global/puppeteer_browser_options.js");
+const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
 
 /// Get latest anime v2
 module.exports.getLatestAnimeV2 = async (req, res) => {
@@ -19,7 +11,7 @@ module.exports.getLatestAnimeV2 = async (req, res) => {
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
   /// Run Browser
-  const browser = await puppeteer.launch(puppeteerOptions);
+  const browser = await PuppeteerSingleton.getBrowser();
 
   /// Page
   const browserPage = await browser.newPage();
@@ -30,21 +22,24 @@ module.exports.getLatestAnimeV2 = async (req, res) => {
       // Go to URLs
       await browserPage.goto(
         `${process.env.ANOBOY_LINK}/?s=${keyword}`,
-        pageOptions
+        PuppeteerBrowserOptions.fastLoadOptions
       );
     } else {
       await browserPage.goto(
         `${process.env.ANOBOY_LINK}/page/${page}/?s=${keyword}`,
-        pageOptions
+        PuppeteerBrowserOptions.fastLoadOptions
       );
     }
   } else {
     if (page == 1) {
-      await browserPage.goto(`${process.env.ANOBOY_LINK}/`, pageOptions);
+      await browserPage.goto(
+        `${process.env.ANOBOY_LINK}/`,
+        PuppeteerBrowserOptions.fastLoadOptions
+      );
     } else {
       await browserPage.goto(
         `${process.env.ANOBOY_LINK}/page/${page}/`,
-        pageOptions
+        PuppeteerBrowserOptions.fastLoadOptions
       );
     }
   }
@@ -143,8 +138,8 @@ module.exports.getLatestAnimeV2 = async (req, res) => {
   let prevPage =
     parseInt(page) <= maxPage && parseInt(page) > 1 ? parseInt(page) - 1 : null;
 
-  /// Close the browser
-  await browser.close();
+  /// Close Browser Page
+  await browserPage.close();
 
   /// Return result
   return res.json({
@@ -172,13 +167,13 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
   /// Run Browser
-  const browser = await puppeteer.launch(puppeteerOptions);
+  const browser = await PuppeteerSingleton.getBrowser();
 
   /// Page
   const browserPage = await browser.newPage();
   await browserPage.goto(
     `${process.env.ANOBOY_LINK}/${tempParam}`,
-    pageOptions
+    PuppeteerBrowserOptions.fullLoadOptions
   );
 
   // Video Links
@@ -227,33 +222,45 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
           text.includes("480")
         ) {
           /// If video wasn't uploaded to the blogger, push certain link
-          if (embedUrl?.includes("/uploads/stream")) {
+          if (
+            embedUrl?.includes("/uploads/stream") &&
+            !embedUrl.includes("data=none")
+          ) {
             /// Push embed url directly from blogger link
-            const data = {};
-            data[text] = `${process.env.ANOBOY_LINK}${embedUrl}`;
+            const data = {
+              resolution: text,
+              link: `${process.env.ANOBOY_LINK}${embedUrl}`,
+            };
             videoEmbedLinks.push(data);
 
             /// Get the real video url
             await newPage.goto(
               `${process.env.ANOBOY_LINK}${embedUrl}`,
-              pageOptions
+              PuppeteerBrowserOptions.fullLoadOptions
             );
             const frame = await newPage.$(".jw-video");
             if (frame) {
               const url = await frame.evaluate((el) => el.getAttribute("src"));
-              const data = {};
-              data[text] = url;
+              const data = {
+                resolution: text,
+                link: url,
+              };
               /// Push real video url
               videoLinks.push(data);
             }
           } else if (embedUrl.includes("www.sharezweb.com")) {
             /// Push embed url directly from blogger link
-            const data = {};
-            data[text] = embedUrl;
+            const data = {
+              resolution: text,
+              link: embedUrl,
+            };
             videoEmbedLinks.push(data);
 
             /// Get the real video url
-            await newPage.goto(embedUrl, pageOptions);
+            await newPage.goto(
+              embedUrl,
+              PuppeteerBrowserOptions.fullLoadOptions
+            );
             const frameElement = await newPage.$(".plyr__video-wrapper");
             if (frameElement) {
               const link = await frameElement.evaluate((el) =>
@@ -261,8 +268,10 @@ module.exports.getAnimeByParamV2 = async (req, res) => {
               );
 
               /// Push real video url
-              const data = {};
-              data[text] = link;
+              const data = {
+                resolution: text,
+                link: link,
+              };
               videoLinks.push(data);
             }
           }

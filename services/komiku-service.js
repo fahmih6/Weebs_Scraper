@@ -57,7 +57,7 @@ module.exports.getLatestManga = async (req, res) => {
               title: trimmedTitle,
               description: trimmedDescription,
               latest_chapter: latestChapter,
-              thumbnail: mangaThumbnail,
+              thumbnail: mangaThumbnail.split("?")[0],
               param: mangaParam,
               detail_url: `${url}/${mangaParam}`,
             });
@@ -189,7 +189,7 @@ module.exports.getMangaByParam = async (req, res) => {
         res.json({
           data: {
             title: trimmedTitle,
-            thumbnail: mangaThumbnail,
+            thumbnail: mangaThumbnail.split("?")[0],
             genre: mangaGenre,
             synopsis: mangaSynopsis,
             chapters: mangaChapters,
