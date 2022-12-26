@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Crawler = require("crawler");
 
 module.exports.getLatestManga = async (req, res) => {
@@ -26,6 +27,7 @@ module.exports.getLatestManga = async (req, res) => {
           .find(".bge")
           .each((i, el) => {
             const mangaTitle = $(el).find(".kan").find("h3").text();
+            const mangaDescription = $(el).find(".kan").find("p").text();
             const mangaThumbnail = $(el).find(".bgei").find("img").data("src");
             const mangaParam = $(el)
               .find(".kan")
@@ -33,14 +35,28 @@ module.exports.getLatestManga = async (req, res) => {
               .eq(0)
               .attr("href")
               .split("/")[4];
+            const latestChapter = $(el)
+              .find(".kan")
+              .find(".new1")
+              .last()
+              .find("span")
+              .last()
+              .text();
 
             let trimmedTitle = mangaTitle;
             if (mangaTitle) {
               trimmedTitle = mangaTitle.trim();
             }
 
+            let trimmedDescription = mangaDescription;
+            if (mangaDescription) {
+              trimmedDescription = mangaDescription.trim().replace("  ", " ");
+            }
+
             mangaList.push({
               title: trimmedTitle,
+              description: trimmedDescription,
+              latest_chapter: latestChapter,
               thumbnail: mangaThumbnail.split("?")[0],
               param: mangaParam,
               detail_url: `${url}/${mangaParam}`,
