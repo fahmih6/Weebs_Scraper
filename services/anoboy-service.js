@@ -34,6 +34,7 @@ module.exports.getLatestAnime = async (req, res) => {
           if (
             $(el).attr("title") != undefined &&
             !$(el).attr("title").toLowerCase().includes("halaman") &&
+            !$(el).attr("title").toLowerCase().includes("page") &&
             $(el).parents("#jadwal").text() == ""
           ) {
             // Title
@@ -64,7 +65,7 @@ module.exports.getLatestAnime = async (req, res) => {
 
         // Page
         let pageString = $(".wp-pagenavi")
-          .find(".pages")
+          .find(".page")
           .text()
           .replace(`Halaman ${page} dari `, "");
         let maxPageTemp = parseInt(pageString);
