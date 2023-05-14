@@ -3,6 +3,9 @@ const Crawler = require("crawler");
 const puppeteer = require("puppeteer");
 const arrayHelper = require("../helper/array-helper.js");
 const PuppeteerSingleton = require("../helper/puppeteer_singleton..js");
+const anoboyHelper = require("../helper/anoboy_helpers/anoboy_archive_helper.js");
+const cheerio = require("cheerio");
+const { default: axios } = require("axios");
 
 module.exports.getLatestAnime = async (req, res) => {
   const page = req.query.page || 1;
@@ -117,212 +120,167 @@ module.exports.getAnimeByParam = async (req, res) => {
   let tempParam = param.replace(/~/gi, "/");
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
-  const c = new Crawler({
-    maxConnections: 16,
-    // This will be called for each crawled page
-    callback: (error, result, done) => {
-      if (error) {
-        console.log(error);
+  /// Json Result
+  let jsonResult = {};
 
-        res.json({
-          error: error.message,
-        });
-      } else {
-        const $ = result.$;
+  /// Get URL
+  const { data } = await axios.get(`${process.env.ANOBOY_LINK}/${tempParam}`);
 
-        // Video Links
-        var videoLinks = [];
+  // Load HTML we fetched in the previous line
+  const $ = cheerio.load(data);
 
-        // Mirrors
-        var mirrors = [];
+  // Video Links
+  var videoLinks = [];
 
-        // Main links
-        var mainLink = $("#mediaplayer").attr("src");
+  // Mirrors
+  var mirrors = [];
 
-        if (mainLink?.includes("/uploads")) {
-          videoLinks.push({
-            resolution: "480P",
-            link: `${process.env.ANOBOY_LINK}${mainLink}`,
-          });
-        } else {
-          videoLinks.push({
-            resolution: "360P",
-            link: mainLink,
-          });
-        }
+  // Main links
+  var mainLink = $("#mediaplayer").attr("src");
 
-        const mirrorCount = $(".vmiror").length;
+  console.log(url);
 
-        if (mirrorCount >= 1) {
-          // Main Link but 720p
-          $(".vmiror")
-            .eq(0)
-            .find("a")
-            .each((i, el) => {
-              let mirrorURL = $(el).data("video");
-
-              if (
-                $(el).text().includes("720") &&
-                !mirrorURL.includes("token=none")
-              ) {
-                if (mirrorURL?.includes("/uploads")) {
-                  videoLinks.push({
-                    resolution: "720P",
-                    link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
-                  });
-                } else {
-                  videoLinks.push({
-                    resolution: "720P",
-                    link: mirrorURL,
-                  });
-                }
-              }
-            });
-
-          // Use mirrors
-          $(".vmiror")
-            .eq(1)
-            .find("a")
-            .each((i, el) => {
-              let mirrorURL = $(el).data("video");
-              let reso = $(el).text();
-
-              // Excludes all non-available resolutions
-              if (!mirrorURL.includes("data=none")) {
-                // Create a new map
-                let mirrorMap = {
-                  resolution: reso,
-                  link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
-                };
-                mirrors.push(mirrorMap);
-              }
-            });
-        }
-
-        // Name
-        let name = $(".entry-content").find(".entry-title").text();
-
-        // Synopsis
-        let sinopsis = $(".contentdeks").text();
-
-        // Episode Navigation
-        let episodeNavigation = [];
-        let navigation = $(".column-three-fourth")
-          .find("#navigasi")
-          .find(".widget-title")
-          .find("a");
-        navigation.each((i, el) => {
-          let link = $(el).attr("href");
-          let episodeName = $(el).attr("title");
-
-          if (link != undefined) {
-            let paramArray = link.split("/");
-            paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
-
-            // Param
-            let param = paramArray.join("~");
-
-            episodeNavigation.push({
-              nav_name: episodeName,
-              nav_link: `${url}/${param}`,
-            });
-          }
-        });
-
-        // Return the json data
-        res.json({
-          data: {
-            name: name,
-            synopsis: sinopsis,
-            episode_navigation: episodeNavigation,
-            video_embed_links: videoLinks,
-            video_mirrors: mirrors,
-            message: `Main Link can only be opened via webview, while the others (resolution based) can be parsed using ${url}/video-direct-link`,
-          },
-        });
-      }
-
-      done();
-    },
-  });
-
-  c.queue(`${process.env.ANOBOY_LINK}/${tempParam}`);
-};
-
-module.exports.getAnimeDirectLinks = async (req, res) => {
-  const body = req.body;
-  const url = req.protocol + "://" + req.get("host") + req.baseUrl;
-
-  const browser = await PuppeteerSingleton.getBrowser();
-  const page = await browser.newPage();
-
-  if (body.hasOwnProperty("url")) {
-    try {
-      // Go to URLs
-      await page.goto(body["url"], {
-        waitUntil: "networkidle2",
-        timeout: 30000,
-      });
-
-      /// Evaluate
-      let link = await page.evaluate(`$(".jw-video").attr("src")`);
-
-      // Close the browser
-      await browser.close();
-
-      // If link is found, then return it.
-      if (link != undefined) {
-        return res.json({
-          link: link,
-        });
-      } else {
-        return res.json({
-          error: "Error getting link, please try again.",
-        });
-      }
-    } catch (error) {
-      return res.json({
-        error: error,
-      });
-    }
-  } else if (body.hasOwnProperty("urls")) {
-    var results = [];
-
-    for (let index = 0; index < body["urls"].length; index++) {
-      const element = body["urls"][index];
-
-      try {
-        // Go to URLs
-        await page.goto(element, {
-          waitUntil: "networkidle2",
-          timeout: 30000,
-        });
-
-        /// Evaluate
-        let link = await page.evaluate(`$(".jw-video").attr("src")`);
-
-        // If link is found, then return it.
-        if (link != undefined) {
-          results.push(link);
-        } else {
-          results.push(link);
-        }
-      } catch (error) {
-        return res.json({
-          error: error,
-        });
-      }
-    }
-
-    // Close the tab
-    await page.close();
-
-    return res.json({
-      links: results,
+  if (mainLink?.includes("/uploads")) {
+    videoLinks.push({
+      resolution: "480P",
+      link: `${process.env.ANOBOY_LINK}${mainLink}`,
     });
   } else {
-    return res.json({
-      error: "URL is not specified, cannot find video data.",
+    videoLinks.push({
+      resolution: "360P",
+      link: mainLink,
     });
   }
+
+  const mirrorCount = $(".vmiror").length;
+
+  if (mirrorCount >= 1) {
+    // Main Link but 720p
+    $(".vmiror")
+      .eq(0)
+      .find("a")
+      .each((i, el) => {
+        let mirrorURL = $(el).data("video");
+
+        if ($(el).text().includes("720") && !mirrorURL.includes("token=none")) {
+          if (mirrorURL?.includes("/uploads")) {
+            videoLinks.push({
+              resolution: "720P",
+              link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
+            });
+          } else {
+            videoLinks.push({
+              resolution: "720P",
+              link: mirrorURL,
+            });
+          }
+        }
+      });
+
+    // Use mirrors
+    $(".vmiror")
+      .eq(1)
+      .find("a")
+      .each((i, el) => {
+        let mirrorURL = $(el).data("video");
+        let reso = $(el).text();
+
+        // Excludes all non-available resolutions
+        if (!mirrorURL.includes("data=none")) {
+          // Create a new map
+          let mirrorMap = {
+            resolution: reso,
+            link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
+          };
+          mirrors.push(mirrorMap);
+        }
+      });
+  }
+
+  // Name
+  let name = $(".entry-content").find(".entry-title").text();
+
+  // Synopsis
+  let sinopsis = $(".contentdeks").text();
+
+  // Episode Navigation
+  let episodeNavigation = [];
+  let navigation = $(".column-three-fourth")
+    .find("#navigasi")
+    .find(".widget-title")
+    .find("a");
+  navigation.each((i, el) => {
+    let link = $(el).attr("href");
+    let episodeName = $(el).attr("title");
+
+    if (link != undefined) {
+      let paramArray = link.split("/");
+      paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
+
+      // Param
+      let param = paramArray.join("~");
+
+      episodeNavigation.push({
+        nav_name: episodeName,
+        nav_link: `${url}/${param}`,
+      });
+    }
+  });
+
+  /// Mirrors direct link
+  let mirrorsDirectLink = [];
+
+  /// Direct link promises
+  let directLinkPromises = [];
+
+  /// Loop through all mirrors
+  for (let index = 0; index < mirrors.length; index++) {
+    const element = mirrors[index];
+    if (element.link.includes("/uploads/stream")) {
+      directLinkPromises.push(parseAnimeMirrorDirectLinks(element.link));
+    }
+  }
+
+  /// Direct links
+  const directLinks = await Promise.all(directLinkPromises);
+
+  /// Set the links and push it to the map
+  for (let index = 0; index < mirrors.length; index++) {
+    const element = mirrors[index];
+    const map = { resolution: element.resolution, link: directLinks[index] };
+    mirrorsDirectLink.push(map);
+  }
+
+  // Return the json data
+  jsonResult = {
+    data: {
+      name: name,
+      synopsis: sinopsis,
+      episode_navigation: episodeNavigation,
+      video_embed_links: videoLinks,
+      video_mirrors: mirrors,
+      video_mirrors_direct_link: mirrorsDirectLink,
+    },
+  };
+
+  /// return json Result
+  return res.json(jsonResult);
+};
+
+/**  Parse anime direct links */
+parseAnimeMirrorDirectLinks = async (link) => {
+  /// Get the data
+  const { data } = await axios.get(link);
+
+  // Load HTML we fetched in the previous line
+  const $ = cheerio.load(data);
+
+  /// Get the script data
+  const scriptData = $("script").eq(4).text();
+
+  /// Parse the link
+  link = anoboyHelper.parseAnoboyArchiveVideoLink(scriptData);
+
+  /// Return the link
+  return link;
 };
