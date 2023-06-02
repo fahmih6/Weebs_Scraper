@@ -4,6 +4,8 @@ const Crawler = require("crawler");
 module.exports.getLatestManga = async (req, res) => {
   const page = req.query.page || 1;
   const keyword = req.query.s;
+  const tag = req.query.tag || "rekomendasi";
+  const genre = req.query.genre;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
   var c = new Crawler({
@@ -29,12 +31,12 @@ module.exports.getLatestManga = async (req, res) => {
             const mangaTitle = $(el).find(".kan").find("h3").text();
             const mangaDescription = $(el).find(".kan").find("p").text();
             const mangaThumbnail = $(el).find(".bgei").find("img").data("src");
-            const mangaParam = $(el)
+            let mangaParam = $(el)
               .find(".kan")
               .find("a")
               .eq(0)
               .attr("href")
-              .split("/")[4];
+              .split("/");
             const latestChapter = $(el)
               .find(".kan")
               .find(".new1")
@@ -42,6 +44,13 @@ module.exports.getLatestManga = async (req, res) => {
               .find("span")
               .last()
               .text();
+
+            /// If genre exists, take the second index
+            if (genre) {
+              mangaParam = mangaParam[2];
+            } else {
+              mangaParam = mangaParam[4];
+            }
 
             let trimmedTitle = mangaTitle;
             if (mangaTitle) {
@@ -88,11 +97,34 @@ module.exports.getLatestManga = async (req, res) => {
 
             next = `${pageKeyword}`;
           }
+        }
+        if (genre) {
+          prev =
+            prevLink != undefined
+              ? prevLink
+                  .replace("/genre/", "")
+                  .replace(`${genre}`, "")
+                  .replace("page/", "")
+                  .replace("/", "")
+                  .replace("/", "")
+              : null;
+          next =
+            nextLink != undefined
+              ? nextLink
+                  .replace("/genre/", "")
+                  .replace(`${genre}`, "")
+                  .replace("page/", "")
+                  .replace("/", "")
+                  .replace("/", "")
+              : null;
+
+          next += `&genre=${genre}`;
+          prev += `&genre=${genre}`;
         } else {
           prev =
             prevLink != undefined
               ? prevLink
-                  .replace("/rekomendasi/", "")
+                  .replace(`/${tag}/`, "")
                   .replace("other", "")
                   .replace("page/", "")
                   .replace("/", "")
@@ -100,7 +132,7 @@ module.exports.getLatestManga = async (req, res) => {
           next =
             nextLink != undefined
               ? nextLink
-                  .replace("/rekomendasi/", "")
+                  .replace(`/${tag}/`, "")
                   .replace("other", "")
                   .replace("page/", "")
                   .replace("/", "")
@@ -127,10 +159,16 @@ module.exports.getLatestManga = async (req, res) => {
         `https://data.komiku.id/page/${page}/?post_type=manga&s=${keyword}`
       );
     }
+  } else if (genre) {
+    if (page === 1) {
+      c.queue(`https://data.komiku.id/genre/${genre}`);
+    } else {
+      c.queue(`https://data.komiku.id/genre/${genre}/page/${page}`);
+    }
   } else if (page === 1) {
-    c.queue(`https://data.komiku.id/other/rekomendasi/`);
+    c.queue(`https://data.komiku.id/other/${tag}/`);
   } else {
-    c.queue(`https://data.komiku.id/other/rekomendasi/page/${page}/`);
+    c.queue(`https://data.komiku.id/other/${tag}/page/${page}/`);
   }
 };
 
@@ -157,6 +195,7 @@ module.exports.getMangaByParam = async (req, res) => {
         const mangaGenre = [];
         const mangaSynopsis = $("#Judul").find(".desc").text().trim();
         const mangaChapters = [];
+        const mangaSimilar = [];
 
         $(".genre li a").each((i, el) => {
           mangaGenre.push($(el).text());
@@ -186,6 +225,37 @@ module.exports.getMangaByParam = async (req, res) => {
           trimmedTitle = mangaTitle.trim();
         }
 
+        /// Similar mangas
+        $("#Spoiler")
+          .find(".grd")
+          .each((i, el) => {
+            /// Spoiler param
+            const link = $(el).find("a").attr("href");
+            const linkArray = link.split("/");
+            const spoilerParam = linkArray[linkArray.length - 2];
+
+            /// Spoiler title
+            const spoilerTitle = $(el).find(".h4").text().trim();
+
+            /// Thumbnail
+            const spoilerThumbnail = $(el)
+              .find("img")
+              .attr("data-src")
+              .split("?")[0];
+
+            /// Synopsis
+            const spoilerSynopsis = $(el).find("p").text().trim();
+
+            /// Push to the mangaSimilar map
+            mangaSimilar.push({
+              title: spoilerTitle,
+              thumbnail: spoilerThumbnail,
+              synopsis: spoilerSynopsis,
+              param: spoilerParam,
+              detail_url: `${url}/${spoilerParam}`,
+            });
+          });
+
         res.json({
           data: {
             title: trimmedTitle,
@@ -193,6 +263,7 @@ module.exports.getMangaByParam = async (req, res) => {
             genre: mangaGenre,
             synopsis: mangaSynopsis,
             chapters: mangaChapters,
+            similars: mangaSimilar,
           },
         });
       }
