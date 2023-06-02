@@ -123,145 +123,161 @@ module.exports.getAnimeByParam = async (req, res) => {
   /// Json Result
   let jsonResult = {};
 
-  /// Get URL
-  const { data } = await axios.get(`${process.env.ANOBOY_LINK}/${tempParam}`);
+  try {
+    /// Get URL
+    const { data } = await axios.get(
+      `${process.env.ANOBOY_LINK}/${tempParam}`,
+      {
+        proxy: false,
+      }
+    );
 
-  // Load HTML we fetched in the previous line
-  const $ = cheerio.load(data);
+    // Load HTML we fetched in the previous line
+    const $ = cheerio.load(data);
 
-  // Video Links
-  var videoLinks = [];
+    // Video Links
+    var videoLinks = [];
 
-  // Mirrors
-  var mirrors = [];
+    // Mirrors
+    var mirrors = [];
 
-  // Main links
-  var mainLink = $("#mediaplayer").attr("src");
+    // Main links
+    var mainLink = $("#mediaplayer").attr("src");
 
-  console.log(url);
+    if (mainLink?.includes("/uploads")) {
+      videoLinks.push({
+        resolution: "480P",
+        link: `${process.env.ANOBOY_LINK}${mainLink}`,
+      });
+    } else {
+      videoLinks.push({
+        resolution: "360P",
+        link: mainLink,
+      });
+    }
 
-  if (mainLink?.includes("/uploads")) {
-    videoLinks.push({
-      resolution: "480P",
-      link: `${process.env.ANOBOY_LINK}${mainLink}`,
-    });
-  } else {
-    videoLinks.push({
-      resolution: "360P",
-      link: mainLink,
-    });
-  }
+    const mirrorCount = $(".vmiror").length;
 
-  const mirrorCount = $(".vmiror").length;
+    if (mirrorCount >= 1) {
+      // Main Link but 720p
+      $(".vmiror")
+        .eq(0)
+        .find("a")
+        .each((i, el) => {
+          let mirrorURL = $(el).data("video");
 
-  if (mirrorCount >= 1) {
-    // Main Link but 720p
-    $(".vmiror")
-      .eq(0)
-      .find("a")
-      .each((i, el) => {
-        let mirrorURL = $(el).data("video");
-
-        if ($(el).text().includes("720") && !mirrorURL.includes("token=none")) {
-          if (mirrorURL?.includes("/uploads")) {
-            videoLinks.push({
-              resolution: "720P",
-              link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
-            });
-          } else {
-            videoLinks.push({
-              resolution: "720P",
-              link: mirrorURL,
-            });
+          if (
+            $(el).text().includes("720") &&
+            !mirrorURL.includes("token=none")
+          ) {
+            if (mirrorURL?.includes("/uploads")) {
+              videoLinks.push({
+                resolution: "720P",
+                link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
+              });
+            } else {
+              videoLinks.push({
+                resolution: "720P",
+                link: mirrorURL,
+              });
+            }
           }
-        }
-      });
+        });
 
-    // Use mirrors
-    $(".vmiror")
-      .eq(1)
-      .find("a")
-      .each((i, el) => {
-        let mirrorURL = $(el).data("video");
-        let reso = $(el).text();
+      // Use mirrors
+      $(".vmiror")
+        .eq(1)
+        .find("a")
+        .each((i, el) => {
+          let mirrorURL = $(el).data("video");
+          let reso = $(el).text();
 
-        // Excludes all non-available resolutions
-        if (!mirrorURL.includes("data=none")) {
-          // Create a new map
-          let mirrorMap = {
-            resolution: reso,
-            link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
-          };
-          mirrors.push(mirrorMap);
-        }
-      });
-  }
-
-  // Name
-  let name = $(".entry-content").find(".entry-title").text();
-
-  // Synopsis
-  let sinopsis = $(".contentdeks").text();
-
-  // Episode Navigation
-  let episodeNavigation = [];
-  let navigation = $(".column-three-fourth")
-    .find("#navigasi")
-    .find(".widget-title")
-    .find("a");
-  navigation.each((i, el) => {
-    let link = $(el).attr("href");
-    let episodeName = $(el).attr("title");
-
-    if (link != undefined) {
-      let paramArray = link.split("/");
-      paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
-
-      // Param
-      let param = paramArray.join("~");
-
-      episodeNavigation.push({
-        nav_name: episodeName,
-        nav_link: `${url}/${param}`,
-      });
+          // Excludes all non-available resolutions
+          if (!mirrorURL.includes("data=none")) {
+            // Create a new map
+            let mirrorMap = {
+              resolution: reso,
+              link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
+            };
+            mirrors.push(mirrorMap);
+          }
+        });
     }
-  });
 
-  /// Mirrors direct link
-  let mirrorsDirectLink = [];
+    // Name
+    let name = $(".entry-content").find(".entry-title").text();
 
-  /// Direct link promises
-  let directLinkPromises = [];
+    // Synopsis
+    let sinopsis = $(".contentdeks").text().trim();
 
-  /// Loop through all mirrors
-  for (let index = 0; index < mirrors.length; index++) {
-    const element = mirrors[index];
-    if (element.link.includes("/uploads/stream")) {
-      directLinkPromises.push(parseAnimeMirrorDirectLinks(element.link));
+    // Episode Navigation
+    let episodeNavigation = [];
+    let navigation = $(".column-three-fourth")
+      .find("#navigasi")
+      .find(".widget-title")
+      .find("a");
+    navigation.each((i, el) => {
+      let link = $(el).attr("href");
+      let episodeName = $(el).attr("title");
+
+      if (link != undefined) {
+        let paramArray = link.split("/");
+        paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
+
+        // Param
+        let param = paramArray.join("~");
+
+        episodeNavigation.push({
+          nav_name: episodeName,
+          nav_link: `${url}/${param}`,
+        });
+      }
+    });
+
+    /// Mirrors direct link
+    let mirrorsDirectLink = [];
+
+    /// Direct link promises
+    let directLinkPromises = [];
+
+    /// Loop through all mirrors
+    for (let index = 0; index < mirrors.length; index++) {
+      const element = mirrors[index];
+      if (element.link.includes("/uploads/stream")) {
+        directLinkPromises.push(parseAnimeMirrorDirectLinks(element.link));
+      }
     }
+
+    /// Direct links
+    const directLinks = await Promise.all(directLinkPromises);
+
+    /// Set the links and push it to the map
+    for (let index = 0; index < mirrors.length; index++) {
+      const element = mirrors[index];
+      const map = { resolution: element.resolution, link: directLinks[index] };
+      mirrorsDirectLink.push(map);
+    }
+
+    // Return the json data
+    jsonResult = {
+      data: {
+        name: name,
+        synopsis: sinopsis,
+        episode_navigation: episodeNavigation,
+        video_embed_links: videoLinks,
+        video_mirrors: mirrors,
+        video_mirrors_direct_link: mirrorsDirectLink,
+      },
+    };
+  } catch (err) {
+    /// Return error json data
+    jsonResult = {
+      data: {},
+      error: {
+        error: err ?? "Unknown Error",
+      },
+    };
   }
-
-  /// Direct links
-  const directLinks = await Promise.all(directLinkPromises);
-
-  /// Set the links and push it to the map
-  for (let index = 0; index < mirrors.length; index++) {
-    const element = mirrors[index];
-    const map = { resolution: element.resolution, link: directLinks[index] };
-    mirrorsDirectLink.push(map);
-  }
-
-  // Return the json data
-  jsonResult = {
-    data: {
-      name: name,
-      synopsis: sinopsis,
-      episode_navigation: episodeNavigation,
-      video_embed_links: videoLinks,
-      video_mirrors: mirrors,
-      video_mirrors_direct_link: mirrorsDirectLink,
-    },
-  };
 
   /// return json Result
   return res.json(jsonResult);
@@ -270,7 +286,9 @@ module.exports.getAnimeByParam = async (req, res) => {
 /**  Parse anime direct links */
 parseAnimeMirrorDirectLinks = async (link) => {
   /// Get the data
-  const { data } = await axios.get(link);
+  const { data } = await axios.get(link, {
+    proxy: false,
+  });
 
   // Load HTML we fetched in the previous line
   const $ = cheerio.load(data);
