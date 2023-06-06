@@ -128,6 +128,7 @@ module.exports.getLatestManga = async (req, res) => {
                   .replace("other", "")
                   .replace("page/", "")
                   .replace("/", "")
+                  .replace("/", "")
               : null;
           next =
             nextLink != undefined
@@ -136,7 +137,11 @@ module.exports.getLatestManga = async (req, res) => {
                   .replace("other", "")
                   .replace("page/", "")
                   .replace("/", "")
+                  .replace("/", "")
               : null;
+
+          next += `&tag=${tag}`;
+          prev += `&tag=${tag}`;
         }
 
         console.log(result.request.uri.href);
