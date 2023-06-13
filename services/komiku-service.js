@@ -1,5 +1,6 @@
 // @ts-nocheck
 const Crawler = require("crawler");
+const KomikuHelpers = require("../helper/komiku_helpers/komiku_helpers.js");
 
 module.exports.getLatestManga = async (req, res) => {
   const page = req.query.page || 1;
@@ -273,6 +274,46 @@ module.exports.getMangaByParam = async (req, res) => {
   });
 
   c.queue(`https://komiku.id/manga/${param}`);
+};
+
+module.exports.getMangaByParamBatch = async (req, res) => {
+  const body = req.body;
+  const url = req.protocol + "://" + req.get("host") + req.baseUrl;
+
+  console.log(body);
+
+  /// Json Result
+  let jsonResult = {};
+
+  try {
+    /// Promises
+    let promises = [];
+
+    /// Create promises for all of the body data
+    for (let index = 0; index < body.length; index++) {
+      const element = body[index];
+
+      /// Get Manga Detail
+      promises.push(KomikuHelpers.getMangaDetail(element, url));
+    }
+
+    /// Run all promises
+    const data = await Promise.all(promises);
+
+    /// Json Data
+    jsonResult = { data: data };
+  } catch (err) {
+    /// Return error json data
+    jsonResult = {
+      data: {},
+      error: {
+        error: err ?? "Unknown Error",
+      },
+    };
+  }
+
+  /// return json Result
+  return res.json(jsonResult);
 };
 
 module.exports.getMangaChapterByParam = async (req, res) => {
