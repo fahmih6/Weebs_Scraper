@@ -23,8 +23,6 @@ module.exports.getLatestManga = async (req, res) => {
 
         const mangaCount = $(".daftar").find(".bge").length;
 
-        console.log(mangaCount);
-
         $(".daftar")
           .find(".bge")
           .each((i, el) => {
@@ -97,8 +95,7 @@ module.exports.getLatestManga = async (req, res) => {
 
             next = `${pageKeyword}`;
           }
-        }
-        if (genre) {
+        } else if (genre) {
           prev =
             prevLink != undefined
               ? prevLink
@@ -143,8 +140,6 @@ module.exports.getLatestManga = async (req, res) => {
           next += `&tag=${tag}`;
           prev += `&tag=${tag}`;
         }
-
-        console.log(result.request.uri.href);
 
         return res.json({
           next_page: nextLink != undefined ? `${url}?page=${next}` : null,
