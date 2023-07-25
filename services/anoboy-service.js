@@ -249,13 +249,40 @@ module.exports.getAnimeByParam = async (req, res) => {
     }
 
     /// Direct links
-    const directLinks = await Promise.all(directLinkPromises);
+    let directLinks = await Promise.all(directLinkPromises);
 
-    /// Set the links and push it to the map
-    for (let index = 0; index < mirrors.length; index++) {
-      const element = mirrors[index];
-      const map = { resolution: element.resolution, link: directLinks[index] };
-      mirrorsDirectLink.push(map);
+    /// If direct links is empty, then try parse video links
+    if (directLinks.length == 0) {
+      /// Loop through all video links
+      for (let index = 0; index < videoLinks.length; index++) {
+        const element = videoLinks[index];
+        if (element.link.includes("/uploads/stream")) {
+          directLinkPromises.push(parseAnimeMirrorDirectLinks(element.link));
+        }
+      }
+
+      /// Direct links
+      directLinks = await Promise.all(directLinkPromises);
+
+      /// Set the links and push it to the map
+      for (let index = 0; index < videoLinks.length; index++) {
+        const element = videoLinks[index];
+        const map = {
+          resolution: element.resolution,
+          link: directLinks[index],
+        };
+        mirrorsDirectLink.push(map);
+      }
+    } else {
+      /// Set the links and push it to the map
+      for (let index = 0; index < mirrors.length; index++) {
+        const element = mirrors[index];
+        const map = {
+          resolution: element.resolution,
+          link: directLinks[index],
+        };
+        mirrorsDirectLink.push(map);
+      }
     }
 
     // Return the json data
