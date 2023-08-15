@@ -260,6 +260,7 @@ module.exports.getMangaByParam = async (req, res) => {
         res.json({
           data: {
             title: trimmedTitle,
+            param: param,
             thumbnail: mangaThumbnail.split("?")[0],
             genre: mangaGenre,
             synopsis: mangaSynopsis,
