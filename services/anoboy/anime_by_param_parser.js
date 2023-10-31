@@ -2,6 +2,7 @@
 const { default: axios } = require("axios");
 const cheerio = require("cheerio");
 const arrayHelper = require("../../helper/array-helper.js");
+const bloggerHelper = require("../../helper/anoboy_helpers/anoboy_blogger_helper.js");
 
 async function parseAnimeByParam(tempParam, url) {
   /// Json Result
@@ -28,65 +29,26 @@ async function parseAnimeByParam(tempParam, url) {
     // Main links
     var mainLink = $("#mediaplayer").attr("src");
 
-    if (mainLink?.includes("/uploads")) {
-      videoLinks.push({
-        resolution: "480p",
-        link: `${process.env.ANOBOY_LINK}${mainLink}`,
+    /// Push Default Resolution
+    videoLinks.push({
+      resolution: "360p",
+      link: mainLink,
+    });
+
+    // Main Link but 720p
+    $(".vmiror")
+      .eq(0)
+      .find("a")
+      .each((i, el) => {
+        let mirrorURL = $(el).data("video");
+
+        if ($(el).text().includes("720") && !mirrorURL.includes("token=none")) {
+          videoLinks.push({
+            resolution: "720p",
+            link: mirrorURL,
+          });
+        }
       });
-    } else {
-      videoLinks.push({
-        resolution: "360p",
-        link: mainLink,
-      });
-    }
-
-    const mirrorCount = $(".vmiror").length;
-
-    if (mirrorCount >= 1) {
-      // Main Link but 720p
-      $(".vmiror")
-        .eq(0)
-        .find("a")
-        .each((i, el) => {
-          let mirrorURL = $(el).data("video");
-
-          if (
-            $(el).text().includes("720") &&
-            !mirrorURL.includes("token=none")
-          ) {
-            if (mirrorURL?.includes("/uploads")) {
-              videoLinks.push({
-                resolution: "720p",
-                link: `${process.env.ANOBOY_LINK}${mirrorURL}`,
-              });
-            } else {
-              videoLinks.push({
-                resolution: "720p",
-                link: mirrorURL,
-              });
-            }
-          }
-        });
-
-      /// Mirror link
-      var mirrorLink = "";
-
-      // Use mirrors
-      $(".vmiror")
-        .last()
-        .find("a")
-        .each((i, el) => {
-          let mirrorURL = $(el).data("video");
-
-          // Excludes all non-available resolutions
-          if (!mirrorURL.includes("data=none")) {
-            mirrorLink = `${process.env.ANOBOY_LINK}${mirrorURL}`;
-          }
-        });
-    }
-
-    /// Get YUP Embed Links
-    mirrors = await getYUPEmbedLinks(mirrorLink);
 
     // Name
     let name = $(".entry-content").find(".entry-title").text();
@@ -100,6 +62,8 @@ async function parseAnimeByParam(tempParam, url) {
       .find("#navigasi")
       .find(".widget-title")
       .find("a");
+
+    /// Loop through all navigation items
     navigation.each((i, el) => {
       let link = $(el).attr("href");
       let episodeName = $(el).attr("title");
@@ -118,25 +82,6 @@ async function parseAnimeByParam(tempParam, url) {
       }
     });
 
-    /// Mirrors direct link
-    let mirrorsDirectLink = [];
-
-    /// Direct link promises
-    let directLinkPromises = [];
-
-    /// Loop through all mirrors
-    for (let index = 0; index < mirrors.length; index++) {
-      const element = mirrors[index];
-      if (element.link.includes("yourupload.com")) {
-        directLinkPromises.push(
-          getYUPDirectLink(element.resolution, element.link)
-        );
-      }
-    }
-
-    /// Direct links
-    mirrorsDirectLink = await Promise.all(directLinkPromises);
-
     // Return the json data
     jsonResult = {
       data: {
@@ -144,8 +89,6 @@ async function parseAnimeByParam(tempParam, url) {
         synopsis: sinopsis,
         episode_navigation: episodeNavigation,
         video_embed_links: videoLinks,
-        video_mirrors: mirrors,
-        video_mirrors_direct_link: mirrorsDirectLink,
       },
     };
   } catch (err) {
