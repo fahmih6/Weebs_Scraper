@@ -56,6 +56,9 @@ async function parseAnimeByParam(tempParam, url) {
     // Synopsis
     let sinopsis = $(".contentdeks").text().trim();
 
+    // Thumbnail
+    let thumbnail = $(".entry-content").find("amp-img").attr("src");
+
     // Episode Navigation
     let episodeNavigation = [];
     let navigation = $(".column-three-fourth")
@@ -87,6 +90,7 @@ async function parseAnimeByParam(tempParam, url) {
       data: {
         name: name,
         synopsis: sinopsis,
+        thumbnail: `${process.env.ANOBOY_LINK}${thumbnail}`,
         episode_navigation: episodeNavigation,
         video_embed_links: videoLinks,
       },
