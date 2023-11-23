@@ -1,3 +1,6 @@
+const { default: axios } = require("axios");
+const cheerio = require("cheerio");
+
 /**
  Parse Anoboy Archive Video Link Manually. */
 function parseAnoboyArchiveVideoLink(stringData) {
@@ -47,6 +50,27 @@ function parseAnoboyArchiveVideoLink(stringData) {
 
   /// Return video link string
   return linkString;
+}
+
+/**
+ * Get anoboy archive direct links
+ */
+async function getAnoboyArchiveDirectLink(link) {
+  try {
+    /// Get the data
+    const { data } = await axios.get(link);
+
+    // Load HTML we fetched in the previous line
+    const $ = cheerio.load(data);
+    /// Get the script data
+    const scriptData = $("script").eq(4).text();
+    /// Parse the link
+    link = parseAnoboyArchiveVideoLink(scriptData);
+    /// Return the link
+    return link;
+  } catch (error) {
+    return null;
+  }
 }
 
 /**
@@ -116,4 +140,4 @@ const anoboyLinkPatternIndexMap = {
   60: "Z",
 };
 
-module.exports = { parseAnoboyArchiveVideoLink };
+module.exports = { parseAnoboyArchiveVideoLink, getAnoboyArchiveDirectLink };

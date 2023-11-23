@@ -52,8 +52,9 @@ async function parseLatestAnime(keyword, url, page) {
         $(el).attr("title") != undefined &&
         $(el).attr("title")?.toLowerCase().includes("halaman") == false &&
         $(el).attr("title")?.toLowerCase().includes("page") == false &&
-        $(el).attr("title")?.toLowerCase().includes("episode") &&
-        $(el).parents("#jadwal").text() == ""
+        $(el).parents("#jadwal").text() == "" &&
+        !$(el).attr("title")?.toLowerCase().includes("[download]") &&
+        !$(el).attr("title")?.toLowerCase().includes("[streaming]")
       ) {
         // Title
         let title = $(el).attr("title");

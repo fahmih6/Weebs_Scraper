@@ -9,14 +9,17 @@ async function getAnoboyBloggerDirectLink(resolution, url) {
   let jsonResult = {};
 
   try {
-    /// Get all the urls
+    /// Headers
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    };
 
     /// Get URL
     const { data } = await axios.get(url, {
       proxy: false,
+      headers: headers,
     });
-
-    console.log(data);
 
     // Load HTML we fetched in the previous line
     const $ = cheerio.load(data);
@@ -39,11 +42,10 @@ async function getAnoboyBloggerDirectLink(resolution, url) {
     const playUrl = videoConfigJson.streams.pop().play_url;
 
     jsonResult = {
+      headers: headers,
       resolution: resolution,
       link: playUrl,
     };
-
-    console.log(playUrl);
 
     return jsonResult;
   } catch (err) {
@@ -52,4 +54,26 @@ async function getAnoboyBloggerDirectLink(resolution, url) {
   }
 }
 
-module.exports = { getAnoboyBloggerDirectLink };
+/**
+ * Get All Blogger Direct Link
+ */
+async function getBatchBloggerDirectLink(bloggerLinks) {
+  /// Direct Link promises
+  const directLinkPromises = [];
+
+  /// Get the direct link promises
+  for (let index = 0; index < bloggerLinks.length; index++) {
+    const element = bloggerLinks[index];
+    directLinkPromises.push(
+      getAnoboyBloggerDirectLink(element.resolution, element.link)
+    );
+  }
+
+  /// Run the promises
+  const videoDirectLinks = await Promise.all(directLinkPromises);
+
+  /// Video Direct Links
+  return videoDirectLinks;
+}
+
+module.exports = { getAnoboyBloggerDirectLink, getBatchBloggerDirectLink };
