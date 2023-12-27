@@ -53,8 +53,8 @@ async function parseLatestAnime(keyword, url, page) {
         $(el).attr("title")?.toLowerCase().includes("halaman") == false &&
         $(el).attr("title")?.toLowerCase().includes("page") == false &&
         $(el).parents("#jadwal").text() == "" &&
-        !$(el).attr("title")?.toLowerCase().includes("[download]") &&
-        !$(el).attr("title")?.toLowerCase().includes("[streaming]")
+        !$(el).attr("title")?.toLowerCase().includes("[download") &&
+        !$(el).attr("title")?.toLowerCase().includes("[streaming")
       ) {
         // Title
         let title = $(el).attr("title");
@@ -119,6 +119,27 @@ async function parseLatestAnime(keyword, url, page) {
         error: err ?? "Unknown Error",
       },
     };
+  }
+
+  /// Run again if data is less than 4
+  if (jsonResult.data.length < 4) {
+    /// Result
+    const res = await parseLatestAnime(keyword, url, page + 1);
+
+    /// New anime list
+    let newAnimeList = [];
+
+    /// Append to the new anime list
+    newAnimeList.push(...jsonResult.data);
+    newAnimeList.push(...res.data);
+
+    /// Alter the anime data
+    res.data = newAnimeList;
+
+    console.log(res.data);
+
+    /// Alter the Json Result
+    jsonResult = res;
   }
 
   return jsonResult;

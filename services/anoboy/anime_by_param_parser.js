@@ -4,6 +4,7 @@ const cheerio = require("cheerio");
 const arrayHelper = require("../../helper/array-helper.js");
 const bloggerHelper = require("../../helper/anoboy_helpers/anoboy_blogger_helper.js");
 const AnoboyEmbedLinkHelper = require("../../helper/anoboy_helpers/anoboy_video_link_helper.js");
+const AnoboyEpisodesHelper = require("../../helper/anoboy_helpers/anoboy_episodes_helper.js");
 
 async function parseAnimeByParam(tempParam, url) {
   /// Json Result
@@ -23,6 +24,9 @@ async function parseAnimeByParam(tempParam, url) {
 
     // Embed Links
     let embedLinks = await AnoboyEmbedLinkHelper.getVideoLinks(data);
+
+    // Episode Links
+    let episodeLinks = await AnoboyEpisodesHelper.getAllEpisodes(data, url);
 
     // Video Links
     var videoLinks =
@@ -74,7 +78,8 @@ async function parseAnimeByParam(tempParam, url) {
         name: name,
         synopsis: sinopsis,
         thumbnail: `${process.env.ANOBOY_LINK}${thumbnail}`,
-        episode_navigation: episodeNavigation,
+        episode_navigation:
+          episodeLinks.length > 1 ? episodeLinks : episodeNavigation,
         video_embed_links: videoLinks,
       },
     };
