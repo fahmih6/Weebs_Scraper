@@ -56,7 +56,7 @@ class AnoboyEpisodesHelper {
 
           animeEpisodeLinks.push({
             nav_name: title,
-            detail_url: `${url}/${param}`,
+            nav_link: `${url}/${param}`,
           });
         }
       });
