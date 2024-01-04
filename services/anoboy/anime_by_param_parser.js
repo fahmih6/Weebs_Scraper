@@ -5,7 +5,7 @@ const arrayHelper = require("../../helper/array-helper.js");
 const bloggerHelper = require("../../helper/anoboy_helpers/anoboy_blogger_helper.js");
 const AnoboyEmbedLinkHelper = require("../../helper/anoboy_helpers/anoboy_video_link_helper.js");
 const AnoboyEpisodesHelper = require("../../helper/anoboy_helpers/anoboy_episodes_helper.js");
-
+const AnoboyDownloadLinkHelper = require("../../helper/anoboy_helpers/anoboy_download_link_helper.js");
 async function parseAnimeByParam(tempParam, url) {
   /// Json Result
   let jsonResult = {};
@@ -35,6 +35,8 @@ async function parseAnimeByParam(tempParam, url) {
         : embedLinks.yup.length > 1
         ? embedLinks.yup
         : embedLinks.archiveEmbedLinks;
+    // Download Links
+    let downloadLinks = await AnoboyDownloadLinkHelper.getDownloadLink(data);
 
     // Name
     let name = $(".entry-content").find(".entry-title").text();
@@ -95,6 +97,11 @@ async function parseAnimeByParam(tempParam, url) {
     // Add Direct Links
     if (embedLinks.yupDirectLinks.length > 1) {
       jsonResult["data"]["video_direct_links"] = embedLinks.yupDirectLinks;
+    }
+
+    // Add Download Links
+    if (downloadLinks.length > 0) {
+      jsonResult["data"]["download_links"] = downloadLinks;
     }
   } catch (err) {
     /// Return error json data
