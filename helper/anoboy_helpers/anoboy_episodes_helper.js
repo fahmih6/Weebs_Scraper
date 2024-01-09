@@ -27,43 +27,95 @@ class AnoboyEpisodesHelper {
         proxy: false,
       });
 
-      /// Get the DOM data
-      const $ = cheerio.load(res.data);
+      /// Parse Result
+      const parseResult = this.parseEpisodesDOM(res.data, url);
 
-      /// Get anime grid data
-      const animeGrid = $(".column-content a");
+      /// Next Link
+      var nextLink = parseResult.nextLink;
 
-      /// Loop through anime grid to get title and link.
-      animeGrid.each((i, el) => {
-        // Select only links that is not halaman
-        if (
-          $(el).attr("title") != undefined &&
-          $(el).attr("title")?.toLowerCase().includes("halaman") == false &&
-          $(el).attr("title")?.toLowerCase().includes("page") == false &&
-          $(el).parents("#jadwal").text() == "" &&
-          !$(el).attr("title")?.toLowerCase().includes("[download]") &&
-          !$(el).attr("title")?.toLowerCase().includes("[streaming]")
-        ) {
-          // Title
-          let title = $(el).attr("title");
+      /// Parse Episodes
+      animeEpisodeLinks.push(...parseResult.episodeList);
 
-          /// Param array
-          let paramArray = $(el).attr("href")?.split("/");
-          paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
+      /// Peform next episode fetch if the next link is not empty
+      while (nextLink != undefined && !nextLink.includes("category/anime/")) {
+        console.log(nextLink);
+        /// Get the next episodes
+        const nextRes = await this.getNextEpisodes(nextLink, url);
 
-          // Param
-          let param = paramArray?.join("~");
+        /// Set the next link
+        nextLink = nextRes.nextLink;
 
-          animeEpisodeLinks.push({
-            nav_name: title,
-            nav_link: `${url}/${param}`,
-          });
-        }
-      });
+        /// Push the Episode List
+        animeEpisodeLinks.push(...nextRes.episodeList);
+      }
     }
 
     /// Anime Episode Links
     return animeEpisodeLinks.reverse();
+  };
+
+  /// Get next episodes if exists.
+  static getNextEpisodes = async (nextURL, localURL) => {
+    /// Visit the URL
+    const res = await axios.get(`${nextURL}`, {
+      proxy: false,
+    });
+
+    /// Return the List.
+    return this.parseEpisodesDOM(res.data, localURL);
+  };
+
+  /// Parse Episodes DOM
+  static parseEpisodesDOM = (data, url) => {
+    /// Episode List
+    var animeEpisodeLinks = [];
+
+    /// Get the DOM data
+    const $ = cheerio.load(data);
+
+    /// Get anime grid data
+    const animeGrid = $(".column-content a");
+
+    /// Loop through anime grid to get title and link.
+    animeGrid.each((i, el) => {
+      // Select only links that is not halaman
+      if (
+        $(el).attr("title") != undefined &&
+        $(el).attr("title")?.toLowerCase().includes("halaman") == false &&
+        $(el).attr("title")?.toLowerCase().includes("page") == false &&
+        $(el).parents("#jadwal").text() == "" &&
+        !$(el).attr("title")?.toLowerCase().includes("[download]") &&
+        !$(el).attr("title")?.toLowerCase().includes("[streaming]")
+      ) {
+        // Title
+        let title = $(el).attr("title");
+
+        /// Param array
+        let paramArray = $(el).attr("href")?.split("/");
+        paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
+
+        // Param
+        let param = paramArray?.join("~");
+
+        animeEpisodeLinks.push({
+          nav_name: title,
+          nav_link: `${url}/${param}`,
+        });
+      }
+    });
+
+    /// Next Post Link
+    const nextPostLink = $(".nextpostslink").attr("href");
+
+    /// Return the result
+    if (nextPostLink != undefined) {
+      return {
+        nextLink: nextPostLink,
+        episodeList: animeEpisodeLinks,
+      };
+    } else {
+      return { episodeList: animeEpisodeLinks };
+    }
   };
 }
 
