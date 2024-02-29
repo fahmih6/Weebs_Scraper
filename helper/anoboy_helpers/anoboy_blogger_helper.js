@@ -2,6 +2,54 @@ const { default: axios } = require("axios");
 const cheerio = require("cheerio");
 
 /**
+ *
+ * @param {String} url
+ */
+async function getBloggerEmbedLink(url) {
+  /// Blogger placeholder
+  let bloggerPlaceholder = "https://www.blogger.com/video.g?token=";
+
+  /// Json Result
+  let jsonResult = [];
+
+  try {
+    /// Get URL
+    const { data } = await axios.get(url, {
+      proxy: false,
+    });
+
+    // Load HTML we fetched in the previous line
+    const $ = cheerio.load(data);
+
+    /// Get the link elements
+    const linkElements = $(".link");
+
+    for (let index = 0; index < linkElements.length; index++) {
+      const element = linkElements[index];
+
+      /// Link
+      const link = $(element).attr("href")?.split("?url=")[1];
+
+      /// Resolution
+      const resolution = $(element).text().trim();
+
+      /// Resolution + Link Map
+      const resLinkMap = {
+        resolution: resolution + "P",
+        link: `${bloggerPlaceholder}${link}`,
+      };
+
+      jsonResult.push(resLinkMap);
+    }
+
+    return jsonResult;
+  } catch (err) {
+    jsonResult = [];
+    return jsonResult;
+  }
+}
+
+/**
  * Get Anoboy Blogger Direct Link
  */
 async function getAnoboyBloggerDirectLink(resolution, url) {
@@ -76,4 +124,8 @@ async function getBatchBloggerDirectLink(bloggerLinks) {
   return videoDirectLinks;
 }
 
-module.exports = { getAnoboyBloggerDirectLink, getBatchBloggerDirectLink };
+module.exports = {
+  getAnoboyBloggerDirectLink,
+  getBatchBloggerDirectLink,
+  getBloggerEmbedLink,
+};
