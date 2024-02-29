@@ -4,6 +4,7 @@ const {
 } = require("../yourupload_helpers/anoboy_yourupload_helper");
 
 const cheerio = require("cheerio");
+const { getBloggerEmbedLink } = require("./anoboy_blogger_helper");
 // const { getAnoboyArchiveDirectLink } = require("./anoboy_archive_helper");
 // const { getBatchBloggerDirectLink } = require("./anoboy_blogger_helper");
 
@@ -12,6 +13,9 @@ const cheerio = require("cheerio");
  * Use this class to call any functions related to getting embed links data.
  */
 class AnoboyEmbedLinkHelper {
+  // Blog link marker
+  static blogMarker = "/uploads/blog";
+
   // YUP link marker
   static yupMarker = "/uploads/yup";
 
@@ -65,6 +69,9 @@ class AnoboyEmbedLinkHelper {
       });
     }
 
+    /// Blogger promises
+    let blogBatchLink = null;
+
     // Your upload promises
     let yupBatchLink = null;
 
@@ -80,11 +87,8 @@ class AnoboyEmbedLinkHelper {
       let _resolution = _el.text();
 
       // If link contains blogger, then append to the blogger.
-      if (_link?.includes("blogger.com")) {
-        bloggerEmbedLinks.push({
-          resolution: _resolution,
-          link: _link,
-        });
+      if (_link?.includes(this.blogMarker)) {
+        blogBatchLink = `${process.env.ANOBOY_LINK}${_link}`;
       } else if (_link?.includes(this.yupMarker)) {
         yupBatchLink = `${process.env.ANOBOY_LINK}${_link}`;
       } else if (_link?.includes(this.archiveMarker)) {
@@ -95,10 +99,31 @@ class AnoboyEmbedLinkHelper {
       }
     });
 
+    // If both blog and yup batch link is not null.
+    // Then get it simultaneously instead of one-by-one
+    if (blogBatchLink != null && yupBatchLink != null) {
+      /// Create a new proses to get blog and yup embed data
+      let batchLinks = await Promise.all([
+        getBloggerEmbedLink(blogBatchLink),
+        getYUPEmbedLinks(yupBatchLink),
+      ]);
+
+      /// Assign it to corresponding variables
+      bloggerEmbedLinks = batchLinks[0];
+      yourUploadEmbedLinks = batchLinks[1];
+    }
+
+    /// Run the promses for new Blogger mode
+    if (blogBatchLink != null && !bloggerEmbedLinks.length) {
+      bloggerEmbedLinks = await getBloggerEmbedLink(blogBatchLink);
+    }
+
     // Run the promises for Your Upload
     if (yupBatchLink != null) {
       // Get Embed Links
-      yourUploadEmbedLinks = await getYUPEmbedLinks(yupBatchLink);
+      yourUploadEmbedLinks = !yourUploadEmbedLinks.length
+        ? await getYUPEmbedLinks(yupBatchLink)
+        : yourUploadEmbedLinks;
 
       // Direct Link Promises
       let _yupDLPromises = [];
