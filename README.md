@@ -22,6 +22,7 @@ npm run start
 # Sample Result
 
 - Note that this scraper is deployed on a `free Render service`, so `some features may not work properly` and, it maybe `out of quota` sometimes.
+- Looks like our free IP/Domain has been blocked by `Anoboy`, it keeps returning 403 error. If you want to test `Anoboy` services kindly clone the repo and test it on your local machine.
 
 #### 1. Anoboy
   - [Get Latest Animes](https://weeb-scraper.onrender.com/api/anoboy)
