@@ -75,9 +75,7 @@ module.exports.getLatestManga = async (req, res) => {
   if (keyword) {
     c.queue(`https://komikcast.com/page/${page}/?s=${keyword}`);
   } else {
-    c.queue(
-      `https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`
-    );
+    c.queue(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update`);
   }
 };
 
