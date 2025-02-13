@@ -60,3 +60,17 @@ https://weeb-scraper.onrender.com/api/komiku
 ```
 https://weeb-scraper.onrender.com/api/komiku?s=Kaguya
 ```
+
+#### 3. Komikcast
+
+- [Get Latest Mangas](https://weeb-scraper.onrender.com/api/komikcast)
+
+```
+https://weeb-scraper.onrender.com/api/komikcast
+```
+
+- [Search Certain Manga](https://weeb-scraper.onrender.com/api/komikcast?s=Kaguya)
+
+```
+https://weeb-scraper.onrender.com/api/komikcast?s=Kaguya
+```

@@ -30,7 +30,8 @@ module.exports.getLatestManga = async (req, res) => {
             const mangaTitle = $(el)
               .find(".list-update_item-info")
               .find(".title")
-              .text();
+              .text()
+              .trim();
             const mangaThumbnail = $(el)
               .find(".list-update_item-image")
               .find(".wp-post-image")
@@ -108,7 +109,9 @@ module.exports.getMangaByParam = async (req, res) => {
 
         const mangaTitle = $(
           ".komik_info-content .komik_info-content-body .komik_info-content-body-title"
-        ).text();
+        )
+          .text()
+          .trim();
         const mangaThumbnail = $(
           ".komik_info-content .komik_info-content-thumbnail img"
         ).attr("src");
