@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.4.0",
+    "axios": "^1.8.2",
     "cheerio": "^1.0.0-rc.12",
     "cheerio-select": "^2.1.0",
     "crawler": "^1.4.0",
