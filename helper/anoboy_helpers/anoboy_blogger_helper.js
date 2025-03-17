@@ -21,26 +21,35 @@ async function getBloggerEmbedLink(url) {
     // Load HTML we fetched in the previous line
     const $ = cheerio.load(data);
 
+    const link = $("#mediaplayer").attr("src");
+
+    const res = url.split(".php")[0].split("adsbatch")[1];
+
     /// Get the link elements
-    const linkElements = $(".link");
+    // const linkElements = $(".link");
 
-    for (let index = 0; index < linkElements.length; index++) {
-      const element = linkElements[index];
+    // for (let index = 0; index < linkElements.length; index++) {
+    //   const element = linkElements[index];
 
-      /// Link
-      const link = $(element).attr("href")?.split("?url=")[1];
+    //   /// Link
+    //   const link = $(element).attr("href")?.split("?url=")[1];
 
-      /// Resolution
-      const resolution = $(element).text().trim();
+    //   /// Resolution
+    //   const resolution = $(element).text().trim();
 
-      /// Resolution + Link Map
-      const resLinkMap = {
-        resolution: resolution + "P",
-        link: `${bloggerPlaceholder}${link}`,
-      };
+    //   /// Resolution + Link Map
+    //   const resLinkMap = {
+    //     resolution: resolution + "P",
+    //     link: `${bloggerPlaceholder}${link}`,
+    //   };
 
-      jsonResult.push(resLinkMap);
-    }
+    //   jsonResult.push(resLinkMap);
+    // }
+
+    jsonResult.push({
+      resolution: res + "P",
+      link: link,
+    });
 
     return jsonResult;
   } catch (err) {

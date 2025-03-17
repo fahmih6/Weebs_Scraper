@@ -38,7 +38,6 @@ class AnoboyEpisodesHelper {
 
       /// Peform next episode fetch if the next link is not empty
       while (nextLink != undefined && !nextLink.includes("category/anime/")) {
-        console.log(nextLink);
         /// Get the next episodes
         const nextRes = await this.getNextEpisodes(nextLink, url);
 
