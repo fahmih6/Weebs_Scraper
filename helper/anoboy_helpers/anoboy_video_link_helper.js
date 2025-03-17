@@ -6,7 +6,8 @@ const {
 const cheerio = require("cheerio");
 const { getBloggerEmbedLink } = require("./anoboy_blogger_helper");
 // const { getAnoboyArchiveDirectLink } = require("./anoboy_archive_helper");
-// const { getBatchBloggerDirectLink } = require("./anoboy_blogger_helper");
+const { getBatchBloggerDirectLink } = require("./anoboy_blogger_helper");
+const { default: axios } = require("axios");
 
 /** Anoboy Embed Link Helper
  *
@@ -14,7 +15,7 @@ const { getBloggerEmbedLink } = require("./anoboy_blogger_helper");
  */
 class AnoboyEmbedLinkHelper {
   // Blog link marker
-  static blogMarker = "/uploads/blog";
+  static blogMarker = "/uploads/adsbatch";
 
   // YUP link marker
   static yupMarker = "/uploads/yup";
@@ -49,10 +50,12 @@ class AnoboyEmbedLinkHelper {
     let mirrorElements = $(".vmiror");
 
     // Main links
-    let mainLink = $("#mediaplayer").attr("src");
+    let mainLink = `https://www.blogger.com/video.g?token=${
+      $("#mediaplayer").attr("src")?.split("=")[1]
+    }`;
 
     // Current main link resolution
-    let mainRes = mirrorElements.eq(0).find(".active").text();
+    let mainRes = mirrorElements.eq(0).find(".active").text() + "P";
 
     // Check the main link, if main link consist of blogger, then parse it as blogger
     if (mainLink?.includes("blogger.com")) {
@@ -81,7 +84,9 @@ class AnoboyEmbedLinkHelper {
       let _el = $(element).find("#allmiror");
 
       // Get embed link.
-      let _link = _el.attr("data-video");
+      let _link = _el.attr("data-video")?.includes(this.blogMarker)
+        ? _el.eq(1).attr("data-video")
+        : _el.attr("data-video");
 
       // Get resolution.
       let _resolution = _el.text();
@@ -109,7 +114,7 @@ class AnoboyEmbedLinkHelper {
       ]);
 
       /// Assign it to corresponding variables
-      bloggerEmbedLinks = batchLinks[0];
+      bloggerEmbedLinks.push(batchLinks[0][0]);
       yourUploadEmbedLinks = batchLinks[1];
     }
 
