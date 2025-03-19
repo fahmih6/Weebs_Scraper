@@ -122,7 +122,7 @@ async function parseLatestAnime(keyword, url, page) {
   }
 
   /// Run again if data is less than 4
-  if (jsonResult.data.length < 4) {
+  if (jsonResult.data.length < 4 && keyword == undefined) {
     /// Result
     const res = await parseLatestAnime(keyword, url, page + 1);
 
@@ -131,12 +131,13 @@ async function parseLatestAnime(keyword, url, page) {
 
     /// Append to the new anime list
     newAnimeList.push(...jsonResult.data);
-    newAnimeList.push(...res.data);
+
+    if (res.data.length >= 1) {
+      newAnimeList.push(...res.data);
+    }
 
     /// Alter the anime data
     res.data = newAnimeList;
-
-    console.log(res.data);
 
     /// Alter the Json Result
     jsonResult = res;
