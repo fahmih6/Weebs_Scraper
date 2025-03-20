@@ -116,6 +116,36 @@ class AnoboyEpisodesHelper {
       return { episodeList: animeEpisodeLinks };
     }
   };
+
+  /// Get episodes from title only
+  static getEpisodesFromTitleOnly = async (data, url) => {
+    // Load HTML into Cheerio
+    const $ = cheerio.load(data);
+
+    // Array to store episodes
+    const episodes = [];
+
+    // Select all episode links
+    $("div.singlelink ul.lcp_catlist li a").each((index, element) => {
+      /// Param array
+      let paramArray = $(element).attr("href")?.split("/");
+      paramArray = arrayHelper.removeAllItemFrom(paramArray, 2);
+
+      // Param
+      let param = paramArray?.join("~");
+
+      const episode = {
+        title: $(element).text().trim(),
+        url: `${url}/${param}`,
+      };
+      episodes.push(episode);
+    });
+
+    // Reverse the array to get episodes from 1 to 25 in order
+    episodes.reverse();
+
+    return episodes;
+  };
 }
 
 module.exports = AnoboyEpisodesHelper;
