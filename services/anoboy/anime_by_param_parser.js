@@ -25,8 +25,17 @@ async function parseAnimeByParam(tempParam, url) {
     // Embed Links
     let embedLinks = await AnoboyEmbedLinkHelper.getVideoLinks(data);
 
+    let episodeLinks = [];
+
     // Episode Links
-    let episodeLinks = await AnoboyEpisodesHelper.getAllEpisodes(data, url);
+    if (url.toLowerCase().includes("episode")) {
+      episodeLinks = await AnoboyEpisodesHelper.getAllEpisodes(data, url);
+    } else {
+      episodeLinks = await AnoboyEpisodesHelper.getEpisodesFromTitleOnly(
+        data,
+        url
+      );
+    }
 
     // Video Links
     var videoLinks =
@@ -40,7 +49,17 @@ async function parseAnimeByParam(tempParam, url) {
     let name = $(".entry-content").find(".entry-title").text();
 
     // Synopsis
-    let sinopsis = $(".contentdeks").text().trim();
+    let sinopsis = "";
+    if (url.toLowerCase().includes("episode")) {
+      sinopsis = $(".contentdeks").text().trim();
+    } else {
+      sinopsis = $("div.unduhan")
+        .first()
+        .text()
+        .replace(/\n/g, " ") // Replace newlines with spaces
+        .replace(/\s+/g, " ") // Collapse multiple spaces
+        .trim();
+    }
 
     // Thumbnail
     let thumbnail = $(".entry-content").find("amp-img").attr("src");
