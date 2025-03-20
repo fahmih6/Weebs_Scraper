@@ -135,8 +135,8 @@ class AnoboyEpisodesHelper {
       let param = paramArray?.join("~");
 
       const episode = {
-        title: $(element).text().trim(),
-        url: `${url}/${param}`,
+        nav_name: $(element).text().trim(),
+        nav_link: `${url}/${param}`,
       };
       episodes.push(episode);
     });

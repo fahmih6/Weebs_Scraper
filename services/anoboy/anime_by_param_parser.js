@@ -28,7 +28,7 @@ async function parseAnimeByParam(tempParam, url) {
     let episodeLinks = [];
 
     // Episode Links
-    if (url.toLowerCase().includes("episode")) {
+    if (tempParam.toLowerCase().includes("episode")) {
       episodeLinks = await AnoboyEpisodesHelper.getAllEpisodes(data, url);
     } else {
       episodeLinks = await AnoboyEpisodesHelper.getEpisodesFromTitleOnly(
@@ -50,7 +50,7 @@ async function parseAnimeByParam(tempParam, url) {
 
     // Synopsis
     let sinopsis = "";
-    if (url.toLowerCase().includes("episode")) {
+    if (tempParam.toLowerCase().includes("episode")) {
       sinopsis = $(".contentdeks").text().trim();
     } else {
       sinopsis = $("div.unduhan")
