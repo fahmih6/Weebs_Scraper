@@ -26,5 +26,8 @@ app.use("/api/v2/anoboy/", require("./routes/anoboy-route-v2.js"));
 /// Use Dorama route
 app.use("/api/dorama/", require("./routes/dorama-route.js"));
 
+/// Use Proxy route
+app.use("/api/proxy/", require("./routes/proxy-route.js"));
+
 /// Listen to certain port
 app.listen(port, () => console.log(`server running on port ${port}`));
