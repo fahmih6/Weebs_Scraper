@@ -20,12 +20,6 @@ app.use("/api/komiku/", require("./routes/komiku-route.js"));
 /// Use Anoboy route
 app.use("/api/anoboy/", require("./routes/anoboy-route.js"));
 
-/// Use Anoboy V2 route
-app.use("/api/v2/anoboy/", require("./routes/anoboy-route-v2.js"));
-
-/// Use Dorama route
-app.use("/api/dorama/", require("./routes/dorama-route.js"));
-
 /// Use Proxy route
 app.use("/api/proxy/", require("./routes/proxy-route.js"));
 
