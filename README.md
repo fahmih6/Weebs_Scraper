@@ -11,7 +11,6 @@ Web scraper for Anoboy, Doramaindo, Komiku, and Komikcast. Build using Node JS.
 ```
 ANOBOY_LINK="Enter Anoboy Link Here"
 KOMIKCAST_LINK="Enter Komikcast Link Here"
-DORAMAINDO_LINK="Enter Doramaindo Link Here"
 ```
 
 3. Run `npm install`.
