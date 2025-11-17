@@ -61,8 +61,16 @@ async function parseAnimeByParam(tempParam, url) {
         .trim();
     }
 
-    // Thumbnail
-    let thumbnail = $(".entry-content").find("amp-img").attr("src");
+    // Image Thumbnail Tag
+    const thumbnailTag = $(".entry-content").find("img, amp-img");
+
+    // Search for possible image thumbnail attributes
+    let thumbnail =
+      thumbnailTag.attr("src") ||
+      thumbnailTag.attr("data-src") ||
+      thumbnailTag.attr("data-i-src") ||
+      thumbnailTag.attr("srcset")?.split(" ")[0] ||
+      null;
 
     // Episode Navigation
     let episodeNavigation = [];
