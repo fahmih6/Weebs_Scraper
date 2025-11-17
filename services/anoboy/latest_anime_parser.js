@@ -42,7 +42,6 @@ async function parseLatestAnime(keyword, url, page) {
       animeGrid = $(".column-content a");
     }
 
-    /// Anime List
     const animeList = [];
 
     // Loop through all anime grid
@@ -65,9 +64,23 @@ async function parseLatestAnime(keyword, url, page) {
         // Param
         let param = paramArray?.join("~");
 
-        // Image
+        // Image Thumbnail Tag
+        const imageTag = $(el).find("img, amp-img");
+
+        // Search for possible image thumbnail attributes
         let image =
-          `${process.env.ANOBOY_LINK}` + $(el).find("amp-img").attr("src");
+          imageTag.attr("src") ||
+          imageTag.attr("data-src") ||
+          imageTag.attr("data-i-src") ||
+          imageTag.attr("srcset")?.split(" ")[0] ||
+          null;
+
+        // If thumbnail is valid, assign the link
+        if (image && !image.startsWith("http")) {
+          image = process.env.ANOBOY_LINK + image;
+        } else {
+          image = "";
+        }
 
         // Upload time
         let uploadTime = $(el).find(".jamup").text();
