@@ -18,13 +18,13 @@ class KomikuHelpers {
       const mangaTitle = $("#Judul h1").text().trim();
       const mangaThumbnail = $(".ims img").attr("src");
       const mangaGenre = [];
-      const mangaSynopsis = $("#Judul").find(".desc").text().trim();
+      const mangaSynopsis = $(".desc").text().trim();
       const mangaChapters = [];
       const mangaSimilar = [];
 
       // @ts-ignore
       $(".genre li a").each((i, el) => {
-        mangaGenre.push($(el).text());
+        mangaGenre.push($(el).text().trim());
       });
 
       $("#Daftar_Chapter tbody tr").each((i, el) => {
