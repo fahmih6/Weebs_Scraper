@@ -23,8 +23,5 @@ app.use("/api/anoboy/", require("./routes/anoboy-route.js"));
 /// Use Proxy route
 app.use("/api/proxy/", require("./routes/proxy-route.js"));
 
-/// Use CORS Proxy route
-app.use("/api/cors-proxy/", require("./routes/cors-proxy-route.js"));
-
 /// Listen to certain port
 app.listen(port, () => console.log(`server running on port ${port}`));

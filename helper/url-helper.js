@@ -16,7 +16,7 @@ function wrapWithCorsProxy(url, baseUrl) {
   }
 
   // Don't wrap if already proxied
-  if (url.includes("/api/cors-proxy/")) {
+  if (url.includes("/api/proxy")) {
     return url;
   }
 
@@ -33,7 +33,7 @@ function wrapWithCorsProxy(url, baseUrl) {
   const encodedUrl = encodeURIComponent(url);
 
   // Return the proxied URL
-  return `${baseDomain}/api/cors-proxy/${encodedUrl}`;
+  return `${baseDomain}/api/proxy?url=${encodedUrl}`;
 }
 
 /**
