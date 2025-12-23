@@ -5,6 +5,10 @@ const arrayHelper = require("../../helper/array-helper.js");
 const bloggerHelper = require("../../helper/anoboy_helpers/anoboy_blogger_helper.js");
 const AnoboyEmbedLinkHelper = require("../../helper/anoboy_helpers/anoboy_video_link_helper.js");
 const AnoboyEpisodesHelper = require("../../helper/anoboy_helpers/anoboy_episodes_helper.js");
+const {
+  wrapWithCorsProxy,
+  wrapVideoLinksWithCorsProxy,
+} = require("../../helper/url-helper.js");
 
 async function parseAnimeByParam(tempParam, url) {
   /// Json Result
@@ -104,7 +108,10 @@ async function parseAnimeByParam(tempParam, url) {
       data: {
         name: name,
         synopsis: sinopsis,
-        thumbnail: `${process.env.ANOBOY_LINK}${thumbnail}`,
+        thumbnail: wrapWithCorsProxy(
+          `${process.env.ANOBOY_LINK}${thumbnail}`,
+          url
+        ),
         episode_navigation:
           episodeLinks.length > 1 ? episodeLinks : episodeNavigation,
         video_embed_links: videoLinks,

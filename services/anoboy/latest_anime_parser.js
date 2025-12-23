@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const cheerio = require("cheerio");
 const arrayHelper = require("../../helper/array-helper.js");
+const { wrapWithCorsProxy } = require("../../helper/url-helper.js");
 
 /// Parse latest anime using cheerio
 async function parseLatestAnime(keyword, url, page) {
@@ -88,7 +89,7 @@ async function parseLatestAnime(keyword, url, page) {
         animeList.push({
           title: title,
           param: param,
-          thumbnail: image,
+          thumbnail: wrapWithCorsProxy(image, url),
           upload_time: uploadTime,
           detail_url: `${url}/${param}`,
         });

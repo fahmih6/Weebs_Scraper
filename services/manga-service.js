@@ -1,5 +1,9 @@
 const { default: axios } = require("axios");
 const cheerio = require("cheerio");
+const {
+  wrapWithCorsProxy,
+  wrapArrayWithCorsProxy,
+} = require("../helper/url-helper.js");
 
 module.exports.getLatestManga = async (req, res) => {
   const page = req.query.page || 1;
@@ -60,7 +64,7 @@ module.exports.getLatestManga = async (req, res) => {
 
         mangaList.push({
           title: mangaTitle,
-          thumbnail: mangaThumbnail,
+          thumbnail: wrapWithCorsProxy(mangaThumbnail, url),
           type: mangaType,
           flag: mangaFlag,
           param: mangaParam,
@@ -168,7 +172,7 @@ module.exports.getMangaByParam = async (req, res) => {
     jsonResult = {
       data: {
         title: mangaTitle,
-        thumbnail: mangaThumbnail,
+        thumbnail: wrapWithCorsProxy(mangaThumbnail, url),
         meta_info: mangaMeta,
         genre: mangaGenre,
         synopsis: mangaSynopsis,
@@ -190,6 +194,7 @@ module.exports.getMangaByParam = async (req, res) => {
 
 module.exports.getMangaChapterByParam = async (req, res) => {
   const { param } = req.params;
+  const url = req.protocol + "://" + req.get("host") + req.baseUrl;
   const chapterImages = [];
 
   let crawlUrl = `${process.env.KOMIKCAST_LINK}/chapter/${param}`;
@@ -215,7 +220,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     });
 
     jsonResult = {
-      data: chapterImages,
+      data: wrapArrayWithCorsProxy(chapterImages, url),
     };
 
     res.json(jsonResult);

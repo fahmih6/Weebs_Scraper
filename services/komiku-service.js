@@ -1,6 +1,10 @@
 const KomikuHelpers = require("../helper/komiku_helpers/komiku_helpers.js");
 const { default: axios } = require("axios");
 const cheerio = require("cheerio");
+const {
+  wrapWithCorsProxy,
+  wrapArrayWithCorsProxy,
+} = require("../helper/url-helper.js");
 
 module.exports.getLatestManga = async (req, res) => {
   const page = req.query.page || 1;
@@ -84,7 +88,7 @@ module.exports.getLatestManga = async (req, res) => {
         title: trimmedTitle,
         description: trimmedDescription,
         latest_chapter: latestChapter,
-        thumbnail: mangaThumbnail?.split("?")[0],
+        thumbnail: wrapWithCorsProxy(mangaThumbnail?.split("?")[0], url),
         param: mangaParam,
         detail_url: `${url}/${mangaParam}`,
       });
@@ -148,12 +152,12 @@ module.exports.getMangaByParam = async (req, res) => {
     const mangaTitle = $("#Judul h1").text().trim();
     const mangaThumbnail = $(".ims img").attr("src");
     const mangaGenre = [];
-    const mangaSynopsis = $("#Judul").find(".desc").text().trim();
+    const mangaSynopsis = $(".desc").text().trim();
     const mangaChapters = [];
     const mangaSimilar = [];
 
     $(".genre li a").each((i, el) => {
-      mangaGenre.push($(el).text());
+      mangaGenre.push($(el).text().trim());
     });
 
     $("#Daftar_Chapter tbody tr").each((i, el) => {
@@ -214,7 +218,7 @@ module.exports.getMangaByParam = async (req, res) => {
         /// Push to the mangaSimilar map
         mangaSimilar.push({
           title: spoilerTitle,
-          thumbnail: spoilerThumbnail,
+          thumbnail: wrapWithCorsProxy(spoilerThumbnail, url),
           synopsis: spoilerSynopsis,
           param: spoilerParam,
           detail_url: `${url}/${spoilerParam}`,
@@ -225,7 +229,7 @@ module.exports.getMangaByParam = async (req, res) => {
       data: {
         title: trimmedTitle,
         param: param,
-        thumbnail: mangaThumbnail?.split("?")[0],
+        thumbnail: wrapWithCorsProxy(mangaThumbnail?.split("?")[0], url),
         genre: mangaGenre,
         synopsis: mangaSynopsis,
         chapters: mangaChapters,
@@ -287,6 +291,7 @@ module.exports.getMangaByParamBatch = async (req, res) => {
 
 module.exports.getMangaChapterByParam = async (req, res) => {
   const { param } = req.params;
+  const url = req.protocol + "://" + req.get("host") + req.baseUrl;
   const chapterImages = [];
 
   let crawlUrl = `https://komiku.org/${param}`;
@@ -316,7 +321,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     });
 
     jsonResult = {
-      data: chapterImages,
+      data: wrapArrayWithCorsProxy(chapterImages, url),
     };
 
     res.json(jsonResult);
