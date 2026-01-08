@@ -17,7 +17,7 @@ module.exports.getLatestAnime = async (req, res) => {
   let jsonResult = await latestAnimeParser.parseLatestAnime(keyword, url, page);
 
   /// Cache result for 1 day
-  cache.set(cacheKey, jsonResult, 86400000);
+  cache.set(cacheKey, jsonResult, 300000);
 
   /// Return the result
   return res.json(jsonResult);
