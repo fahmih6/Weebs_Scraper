@@ -16,8 +16,8 @@ module.exports.getLatestAnime = async (req, res) => {
   /// Parse latest anime crawler
   let jsonResult = await latestAnimeParser.parseLatestAnime(keyword, url, page);
 
-  /// Cache result for 5 minutes
-  cache.set(cacheKey, jsonResult);
+  /// Cache result for 1 day
+  cache.set(cacheKey, jsonResult, 86400000);
 
   /// Return the result
   return res.json(jsonResult);
@@ -37,8 +37,8 @@ module.exports.getAnimeByParam = async (req, res) => {
   /// JSON Result
   let jsonResult = await animeByParamParser.parseAnimeByParam(tempParam, url);
 
-  /// Cache result for 5 minutes
-  cache.set(cacheKey, jsonResult);
+  /// Cache result for 1 day
+  cache.set(cacheKey, jsonResult, 86400000);
 
   return res.json(jsonResult);
 };

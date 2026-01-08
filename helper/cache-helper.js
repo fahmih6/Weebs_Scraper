@@ -11,9 +11,9 @@ class CacheHelper {
    * Set a value in the cache with a TTL (Time To Live).
    * @param {string} key
    * @param {any} value
-   * @param {number} ttlMs TTL in milliseconds. Defaults to 5 minutes (300,000ms).
+   * @param {number} ttlMs TTL in milliseconds. Defaults to 24 hours (86,400,000ms).
    */
-  set(key, value, ttlMs = 300000) {
+  set(key, value, ttlMs = 86400000) {
     // Basic eviction policy: remove oldest if limit reached
     if (this.cache.size >= this.maxItems && !this.cache.has(key)) {
       const firstKey = this.cache.keys().next().value;
