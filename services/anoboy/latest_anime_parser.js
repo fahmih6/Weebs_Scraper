@@ -1,4 +1,4 @@
-const { default: axios } = require("axios");
+const http = require("../../helper/http-helper.js");
 const cheerio = require("cheerio");
 const arrayHelper = require("../../helper/array-helper.js");
 const { wrapWithCorsProxy } = require("../../helper/url-helper.js");
@@ -28,9 +28,7 @@ async function parseLatestAnime(keyword, url, page) {
 
   try {
     /// Get URL
-    const { data } = await axios.get(getUrl, {
-      proxy: false,
-    });
+    const { data } = await http.get(getUrl);
 
     // Load HTML we fetched in the previous line
     const $ = cheerio.load(data);
