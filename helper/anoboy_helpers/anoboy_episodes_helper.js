@@ -1,5 +1,5 @@
 const cheerio = require("cheerio");
-const { default: axios } = require("axios");
+const http = require("../../helper/http-helper.js");
 const arrayHelper = require("../../helper/array-helper.js");
 
 /** Anoboy Episodes Helper
@@ -10,11 +10,13 @@ class AnoboyEpisodesHelper {
   /// Get all episodes
   static getAllEpisodes = async (data, url) => {
     // Assign root of HTML DOM.
-    const parentDOM = cheerio.load(data);
+    const parentDOM = typeof data === "string" ? cheerio.load(data) : data;
 
     /// Parent Link
     const parentLink = parentDOM(".breadcrumb")
-      .find("*[itemtype = 'https://schema.org/WebPage']")
+      .find(
+        "a[itemtype='https://schema.org/WebPage'], a[itemtype = 'https://schema.org/WebPage']"
+      )
       .attr("href");
 
     /// Anime Episode Links
@@ -23,9 +25,7 @@ class AnoboyEpisodesHelper {
     /// Make sure parent link is not empty
     if (parentLink != undefined) {
       /// Visit the parent link
-      const res = await axios.get(`${parentLink}`, {
-        proxy: false,
-      });
+      const res = await http.get(`${parentLink}`);
 
       /// Parse Result
       const parseResult = this.parseEpisodesDOM(res.data, url);
@@ -56,9 +56,7 @@ class AnoboyEpisodesHelper {
   /// Get next episodes if exists.
   static getNextEpisodes = async (nextURL, localURL) => {
     /// Visit the URL
-    const res = await axios.get(`${nextURL}`, {
-      proxy: false,
-    });
+    const res = await http.get(`${nextURL}`);
 
     /// Return the List.
     return this.parseEpisodesDOM(res.data, localURL);
@@ -70,7 +68,7 @@ class AnoboyEpisodesHelper {
     var animeEpisodeLinks = [];
 
     /// Get the DOM data
-    const $ = cheerio.load(data);
+    const $ = typeof data === "string" ? cheerio.load(data) : data;
 
     /// Get anime grid data
     const animeGrid = $(".column-content a");
@@ -120,7 +118,7 @@ class AnoboyEpisodesHelper {
   /// Get episodes from title only
   static getEpisodesFromTitleOnly = async (data, url) => {
     // Load HTML into Cheerio
-    const $ = cheerio.load(data);
+    const $ = typeof data === "string" ? cheerio.load(data) : data;
 
     // Array to store episodes
     const episodes = [];

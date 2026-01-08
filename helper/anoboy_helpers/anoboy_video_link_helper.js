@@ -7,7 +7,7 @@ const cheerio = require("cheerio");
 const { getBloggerEmbedLink } = require("./anoboy_blogger_helper");
 // const { getAnoboyArchiveDirectLink } = require("./anoboy_archive_helper");
 const { getBatchBloggerDirectLink } = require("./anoboy_blogger_helper");
-const { default: axios } = require("axios");
+const http = require("../http-helper.js");
 
 /** Anoboy Embed Link Helper
  *
@@ -44,7 +44,7 @@ class AnoboyEmbedLinkHelper {
     let archiveDirectLinks = [];
 
     // Assign root of HTML DOM.
-    const $ = cheerio.load(data);
+    const $ = typeof data === "string" ? cheerio.load(data) : data;
 
     // Mirror Element
     let mirrorElements = $(".vmiror");
