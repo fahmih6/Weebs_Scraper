@@ -23,6 +23,7 @@ module.exports.getLatestManga = async (req, res) => {
     /// Get URL
     const { data } = await axios.get(crawlUrl, {
       proxy: false,
+      timeout: 15000,
     });
 
     /// Manga list
@@ -32,46 +33,43 @@ module.exports.getLatestManga = async (req, res) => {
     const $ = cheerio.load(data);
 
     /// Manga Count
-    const mangaCount = $(".list-update_items-wrapper").find(
+    const mangaItems = $(".list-update_items-wrapper").find(
       ".list-update_item"
-    ).length;
+    );
+    const mangaCount = mangaItems.length;
 
-    console.log(mangaCount);
+    mangaItems.each((i, el) => {
+      const mangaTitle = $(el)
+        .find(".list-update_item-info")
+        .find(".title")
+        .text()
+        .trim();
+      const mangaThumbnail = $(el)
+        .find(".list-update_item-image")
+        .find(".wp-post-image")
+        .attr("src");
+      const mangaParam = $(el).find("a").attr("href")?.split("/")[4];
+      const mangaRating = $(el)
+        .find(".list-update_item-info")
+        .find(".rating")
+        .find(".numscore")
+        .text();
+      const mangaType = $(el)
+        .find(".list-update_item-image")
+        .find(".type")
+        .text();
+      const mangaFlag = $(el).find(".list-update_item-image").attr("src");
 
-    $(".list-update_items-wrapper")
-      .find(".list-update_item")
-      .each((i, el) => {
-        const mangaTitle = $(el)
-          .find(".list-update_item-info")
-          .find(".title")
-          .text()
-          .trim();
-        const mangaThumbnail = $(el)
-          .find(".list-update_item-image")
-          .find(".wp-post-image")
-          .attr("src");
-        const mangaParam = $(el).find("a").attr("href")?.split("/")[4];
-        const mangaRating = $(el)
-          .find(".list-update_item-info")
-          .find(".rating")
-          .find(".numscore")
-          .text();
-        const mangaType = $(el)
-          .find(".list-update_item-image")
-          .find(".type")
-          .text();
-        const mangaFlag = $(el).find(".list-update_item-image").attr("src");
-
-        mangaList.push({
-          title: mangaTitle,
-          thumbnail: wrapWithCorsProxy(mangaThumbnail, url),
-          type: mangaType,
-          flag: mangaFlag,
-          param: mangaParam,
-          rating: mangaRating,
-          detail_url: `${url}/${mangaParam}`,
-        });
+      mangaList.push({
+        title: mangaTitle,
+        thumbnail: wrapWithCorsProxy(mangaThumbnail, url),
+        type: mangaType,
+        flag: mangaFlag,
+        param: mangaParam,
+        rating: mangaRating,
+        detail_url: `${url}/${mangaParam}`,
       });
+    });
 
     jsonResult = {
       next_page: keyword
@@ -91,12 +89,15 @@ module.exports.getLatestManga = async (req, res) => {
     return res.json(jsonResult);
   } catch (err) {
     /// Return error json data
+    console.error(`Error in getLatestManga: ${err.message}`);
+    const status = err.response?.status || 500;
     jsonResult = {
-      data: {},
+      data: [],
       error: {
         error: err.message ?? "Unknown Error",
       },
     };
+    return res.status(status).json(jsonResult);
   }
 };
 
@@ -104,7 +105,7 @@ module.exports.getMangaByParam = async (req, res) => {
   const { param } = req.params;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
-  let crawlUrl = `${process.env.KOMIKCAST_LINK}/manga/${param}`;
+  let crawlUrl = `${process.env.KOMIKCAST_LINK}/komik/${param}`;
 
   /// Json Result
   let jsonResult = {};
@@ -113,6 +114,7 @@ module.exports.getMangaByParam = async (req, res) => {
     /// Get URL
     const { data } = await axios.get(crawlUrl, {
       proxy: false,
+      timeout: 15000,
     });
 
     // Load HTML we fetched in the previous line
@@ -123,6 +125,14 @@ module.exports.getMangaByParam = async (req, res) => {
     )
       .text()
       .trim();
+
+    if (!mangaTitle) {
+      return res.status(404).json({
+        data: {},
+        error: "Manga not found or structure changed",
+      });
+    }
+
     const mangaThumbnail = $(
       ".komik_info-content .komik_info-content-thumbnail img"
     ).attr("src");
@@ -136,20 +146,21 @@ module.exports.getMangaByParam = async (req, res) => {
     const mangaChapters = [];
 
     $(".komik_info-content-meta span").each((i, el) => {
-      const metaKey = $(el)
-        .text()
-        .split(":")[0]
-        .trim()
-        .toLowerCase()
-        .split(" ")
-        .join("_");
-      const metaVal = $(el).text().split(":")[1].trim().toLowerCase();
-
-      mangaMeta[metaKey] = metaVal;
+      const text = $(el).text();
+      if (text.includes(":")) {
+        const metaKey = text
+          .split(":")[0]
+          .trim()
+          .toLowerCase()
+          .split(" ")
+          .join("_");
+        const metaVal = text.split(":")[1].trim().toLowerCase();
+        mangaMeta[metaKey] = metaVal;
+      }
     });
 
     $(".komik_info-content-genre .genre-item").each((i, el) => {
-      mangaGenre.push($(el).text());
+      mangaGenre.push($(el).text().trim());
     });
 
     $(".komik_info-chapters-wrapper li").each((i, el) => {
@@ -180,15 +191,18 @@ module.exports.getMangaByParam = async (req, res) => {
       },
     };
 
-    res.json(jsonResult);
+    return res.json(jsonResult);
   } catch (err) {
     /// Return error json data
+    console.error(`Error fetching manga ${param}: ${err.message}`);
+    const status = err.response?.status || 500;
     jsonResult = {
       data: {},
       error: {
         error: err.message ?? "Unknown Error",
       },
     };
+    return res.status(status).json(jsonResult);
   }
 };
 
@@ -206,6 +220,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     /// Get URL
     const { data } = await axios.get(crawlUrl, {
       proxy: false,
+      timeout: 15000,
     });
 
     // Load HTML we fetched in the previous line
@@ -219,18 +234,27 @@ module.exports.getMangaChapterByParam = async (req, res) => {
       }
     });
 
+    if (chapterImages.length === 0) {
+      console.warn(
+        `No images found for chapter ${param}. Selector might be outdated or content unavailable.`
+      );
+    }
+
     jsonResult = {
       data: wrapArrayWithCorsProxy(chapterImages, url),
     };
 
-    res.json(jsonResult);
+    return res.json(jsonResult);
   } catch (err) {
     /// Return error json data
+    console.error(`Error in getMangaChapterByParam: ${err.message}`);
+    const status = err.response?.status || 500;
     jsonResult = {
-      data: {},
+      data: [],
       error: {
         error: err.message ?? "Unknown Error",
       },
     };
+    return res.status(status).json(jsonResult);
   }
 };
