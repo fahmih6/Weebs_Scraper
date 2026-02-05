@@ -4,6 +4,13 @@ const {
   wrapArrayWithCorsProxy,
 } = require("../helper/url-helper.js");
 
+/**
+ * Komikcast Manga Service V2
+ *
+ * This service interacts with the Komikcast backend API at be.komikcast.fit
+ * using direct JSON requests instead of HTML scraping.
+ */
+
 const KOMIKCAST_API = "https://be.komikcast.fit";
 const KOMIKCAST_REFERER = process.env.KOMIKCAST_LINK;
 
@@ -13,9 +20,16 @@ const axiosConfig = {
   headers: {
     origin: KOMIKCAST_REFERER,
     referer: KOMIKCAST_REFERER,
+    "user-agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
   },
 };
 
+/**
+ * Get latest manga updates or search for manga
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
 module.exports.getLatestManga = async (req, res) => {
   const page = req.query.page || 1;
   const keyword = req.query.s;
@@ -68,6 +82,11 @@ module.exports.getLatestManga = async (req, res) => {
   }
 };
 
+/**
+ * Get manga details by slug/param
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
 module.exports.getMangaByParam = async (req, res) => {
   const { param } = req.params;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
@@ -131,10 +150,12 @@ module.exports.getMangaByParam = async (req, res) => {
   }
 };
 
+/**
+ * Get chapter images/content by manga slug and chapter index
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
 module.exports.getMangaChapterByParam = async (req, res) => {
-  // Now we need both manga slug and chapter index
-  // The route : /chapter/:param might need adjustment or we parse both from param
-  // if param is combined, else we use multiple params
   const { param, chapter } = req.params;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
@@ -160,7 +181,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
       axiosConfig,
     );
 
-    // Images can be in images array or dataImages map
+    // Images can be in 'images' array or 'dataImages' map
     let chapterImages = data.data?.images || [];
     if (chapterImages.length === 0 && data.data?.dataImages) {
       chapterImages = Object.values(data.data?.dataImages);
