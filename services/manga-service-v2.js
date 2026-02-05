@@ -35,10 +35,10 @@ module.exports.getLatestManga = async (req, res) => {
   const keyword = req.query.s;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
-  let crawlUrl = `${KOMIKCAST_API}/series?preset=rilisan_terbaru&take=20&takeChapter=3&page=${page}`;
+  let crawlUrl = `${KOMIKCAST_API}/series?preset=rilisan_terbaru&take=20&takeChapter=1&page=${page}`;
   if (keyword) {
-    crawlUrl = `${KOMIKCAST_API}/series?search=${encodeURIComponent(
-      keyword,
+    crawlUrl = `${KOMIKCAST_API}/series?takeChapter=1&filter=${encodeURIComponent(
+      `title=like="${keyword}",nativeTitle=like="${keyword}"`,
     )}&take=20&page=${page}`;
   }
 
@@ -54,6 +54,7 @@ module.exports.getLatestManga = async (req, res) => {
         type: item.data?.format || item.data?.type || item.type,
         param: item.data?.slug || item.slug,
         rating: (item.data?.rating || item.rating)?.toString() || "0",
+        latest_chapter: item.chapters?.[0]?.data?.index || null,
         detail_url: `${url}/${item.data?.slug || item.slug}`,
       };
     });
@@ -66,9 +67,8 @@ module.exports.getLatestManga = async (req, res) => {
       prev_page:
         page == 1
           ? null
-          : `${url}?${keyword ? `s=${keyword}&` : ""}page=${
-              parseInt(page) - 1
-            }`,
+          : `${url}?${keyword ? `s=${keyword}&` : ""}page=${parseInt(page) - 1
+          }`,
       data: mangaList,
     };
 
