@@ -40,8 +40,9 @@ class ProxyService {
 
   /// Stream data
   static async stream(req, res) {
-    /// Get the url from query params
+    /// Get the url and referer from query params
     const url = req.query.url;
+    const referer = req.query.referer;
 
     /// Validate the url
     if (!url || !this.isValidTargetUrl(url)) {
@@ -53,7 +54,17 @@ class ProxyService {
 
     /// Get image
     try {
-      const response = await axios.get(url, { responseType: "stream" });
+      const urlObj = new URL(url);
+      const finalReferer = referer || urlObj.origin + "/";
+
+      const response = await axios.get(url, {
+        responseType: "stream",
+        headers: {
+          Referer: finalReferer,
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      });
       /// Content
       res.setHeader("Content-Type", response.headers["content-type"]);
       /// Pipe the result
