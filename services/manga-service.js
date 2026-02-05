@@ -34,7 +34,7 @@ module.exports.getLatestManga = async (req, res) => {
 
     /// Manga Count
     const mangaItems = $(".list-update_items-wrapper").find(
-      ".list-update_item"
+      ".list-update_item",
     );
     const mangaCount = mangaItems.length;
 
@@ -62,7 +62,11 @@ module.exports.getLatestManga = async (req, res) => {
 
       mangaList.push({
         title: mangaTitle,
-        thumbnail: wrapWithCorsProxy(mangaThumbnail, url),
+        thumbnail: wrapWithCorsProxy(
+          mangaThumbnail,
+          url,
+          process.env.KOMIKCAST_LINK,
+        ),
         type: mangaType,
         flag: mangaFlag,
         param: mangaParam,
@@ -81,8 +85,8 @@ module.exports.getLatestManga = async (req, res) => {
         page == 1
           ? null
           : keyword
-          ? `${url}?s=${keyword}&page=${parseInt(page) - 1}`
-          : `${url}?page=${parseInt(page) - 1}`,
+            ? `${url}?s=${keyword}&page=${parseInt(page) - 1}`
+            : `${url}?page=${parseInt(page) - 1}`,
       data: mangaList,
     };
 
@@ -121,7 +125,7 @@ module.exports.getMangaByParam = async (req, res) => {
     const $ = cheerio.load(data);
 
     const mangaTitle = $(
-      ".komik_info-content .komik_info-content-body .komik_info-content-body-title"
+      ".komik_info-content .komik_info-content-body .komik_info-content-body-title",
     )
       .text()
       .trim();
@@ -134,12 +138,12 @@ module.exports.getMangaByParam = async (req, res) => {
     }
 
     const mangaThumbnail = $(
-      ".komik_info-content .komik_info-content-thumbnail img"
+      ".komik_info-content .komik_info-content-thumbnail img",
     ).attr("src");
     const mangaMeta = {};
     const mangaGenre = [];
     const mangaSynopsis = $(
-      ".komik_info-description .komik_info-description-sinopsis p"
+      ".komik_info-description .komik_info-description-sinopsis p",
     )
       .text()
       .trim();
@@ -170,7 +174,12 @@ module.exports.getMangaByParam = async (req, res) => {
         .replace("Chapter", "")
         .trim();
       const chapterSlug = $(el).find("a").attr("href")?.split("/")[4];
-      const chapterRelease = $(el).find(".chapter-link-time").text().trim();
+      const chapterRelease = $(el)
+        .find(".chapter-link-time")
+        .text()
+        .trim()
+        .split("\n")[0]
+        .trim();
 
       mangaChapters.push({
         chapter: chapterNumber,
@@ -183,7 +192,11 @@ module.exports.getMangaByParam = async (req, res) => {
     jsonResult = {
       data: {
         title: mangaTitle,
-        thumbnail: wrapWithCorsProxy(mangaThumbnail, url),
+        thumbnail: wrapWithCorsProxy(
+          mangaThumbnail,
+          url,
+          process.env.KOMIKCAST_LINK,
+        ),
         meta_info: mangaMeta,
         genre: mangaGenre,
         synopsis: mangaSynopsis,
@@ -236,12 +249,16 @@ module.exports.getMangaChapterByParam = async (req, res) => {
 
     if (chapterImages.length === 0) {
       console.warn(
-        `No images found for chapter ${param}. Selector might be outdated or content unavailable.`
+        `No images found for chapter ${param}. Selector might be outdated or content unavailable.`,
       );
     }
 
     jsonResult = {
-      data: wrapArrayWithCorsProxy(chapterImages, url),
+      data: wrapArrayWithCorsProxy(
+        chapterImages,
+        url,
+        process.env.KOMIKCAST_LINK,
+      ),
     };
 
     return res.json(jsonResult);

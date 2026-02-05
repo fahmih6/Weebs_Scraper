@@ -9,7 +9,7 @@
  * @param {string} baseUrl - The base URL of the API (e.g., http://localhost:3000/api/anoboy)
  * @returns {string|null} - The proxied URL or null if input is invalid
  */
-function wrapWithCorsProxy(url, baseUrl) {
+function wrapWithCorsProxy(url, baseUrl, referer = null) {
   // Return null for invalid inputs or non-string types
   if (!url || typeof url !== "string" || url === "") {
     return null;
@@ -32,8 +32,15 @@ function wrapWithCorsProxy(url, baseUrl) {
   // Encode the URL to be proxied
   const encodedUrl = encodeURIComponent(url);
 
-  // Return the proxied URL
-  return `${baseDomain}/api/proxy?url=${encodedUrl}`;
+  // Base proxied URL
+  let proxiedUrl = `${baseDomain}/api/proxy?url=${encodedUrl}`;
+
+  // Add referer if provided
+  if (referer) {
+    proxiedUrl += `&referer=${encodeURIComponent(referer)}`;
+  }
+
+  return proxiedUrl;
 }
 
 /**
@@ -42,13 +49,13 @@ function wrapWithCorsProxy(url, baseUrl) {
  * @param {string} baseUrl - The base URL of the API
  * @returns {string[]} - Array of proxied URLs
  */
-function wrapArrayWithCorsProxy(urls, baseUrl) {
+function wrapArrayWithCorsProxy(urls, baseUrl, referer = null) {
   if (!Array.isArray(urls)) {
     return [];
   }
 
   return urls
-    .map((url) => wrapWithCorsProxy(url, baseUrl))
+    .map((url) => wrapWithCorsProxy(url, baseUrl, referer))
     .filter((url) => url !== null);
 }
 
