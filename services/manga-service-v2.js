@@ -67,8 +67,9 @@ module.exports.getLatestManga = async (req, res) => {
       prev_page:
         page == 1
           ? null
-          : `${url}?${keyword ? `s=${keyword}&` : ""}page=${parseInt(page) - 1
-          }`,
+          : `${url}?${keyword ? `s=${keyword}&` : ""}page=${
+              parseInt(page) - 1
+            }`,
       data: mangaList,
     };
 
@@ -135,7 +136,11 @@ module.exports.getMangaByParam = async (req, res) => {
           series.data?.genres?.map((g) => g.data?.name || g.name) ||
           series.genres?.map((g) => g.data?.name || g.name) ||
           [],
-        synopsis: series.data?.summary || series.summary,
+        synopsis:
+          series.data?.synopsis?.trim() ||
+          series.synopsis?.trim() ||
+          series.data?.summary?.trim() ||
+          series.summary?.trim(),
         chapters: mangaChapters,
       },
     };
