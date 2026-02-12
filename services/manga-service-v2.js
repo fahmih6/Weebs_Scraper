@@ -187,9 +187,9 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     );
 
     // Images can be in 'images' array or 'dataImages' map
-    let chapterImages = data.data?.images || [];
-    if (chapterImages.length === 0 && data.data?.dataImages) {
-      chapterImages = Object.values(data.data?.dataImages);
+    let chapterImages = data.data?.data?.images || [];
+    if (chapterImages.length === 0 && data.data?.data?.dataImages) {
+      chapterImages = Object.values(data.data?.data?.dataImages);
     }
 
     return res.json({
