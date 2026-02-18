@@ -7,11 +7,11 @@ const {
 /**
  * Komikcast Manga Service V2
  *
- * This service interacts with the Komikcast backend API at be.komikcast.fit
+ * This service interacts with the Komikcast backend API at be.komikcast.cc
  * using direct JSON requests instead of HTML scraping.
  */
 
-const KOMIKCAST_API = "https://be.komikcast.fit";
+const KOMIKCAST_API = "https://be.komikcast.cc";
 const KOMIKCAST_REFERER = process.env.KOMIKCAST_LINK;
 
 const axiosConfig = {
