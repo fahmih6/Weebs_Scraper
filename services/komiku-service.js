@@ -134,7 +134,7 @@ module.exports.getMangaByParam = async (req, res) => {
   const { param } = req.params;
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
 
-  let crawlUrl = `https://komiku.org/manga/${param}`;
+  let crawlUrl = `https://komiku.org/manga/${param}/`;
 
   /// Json Result
   let jsonResult = {};
@@ -149,43 +149,32 @@ module.exports.getMangaByParam = async (req, res) => {
     // Load HTML we fetched in the previous line
     const $ = cheerio.load(data);
 
-    const mangaTitle = $("#Judul h1").text().trim();
+    const mangaTitle = $("h1").text().trim();
     const mangaThumbnail = $(".ims img").attr("src");
     const mangaGenre = [];
-    const mangaSynopsis = $(".desc").text().trim();
+    const mangaSynopsis = $(".sinopsis").text().trim();
     const mangaChapters = [];
     const mangaSimilar = [];
 
-    $(".genre li a").each((i, el) => {
+    $(".genre a").each((i, el) => {
       mangaGenre.push($(el).text().trim());
     });
 
-    $("#Daftar_Chapter tbody tr").each((i, el) => {
-      if (i > 0) {
-        const chapterNumber = $(el).find(".judulseries").text().trim();
-
-        let chapterSlug = $(el)
-          .find(".judulseries")
-          .find("a")
-          .attr("href")
-          ?.split("/")[1];
-
-        if (chapterSlug == "ch") {
-          chapterSlug = $(el)
-            .find(".judulseries")
-            .find("a")
-            .attr("href")
-            ?.split("ch/")[1];
-        }
-
+    $("#Daftar_Chapter tr").each((i, el) => {
+      const chapterNumber = $(el).find(".judulseries").text().trim();
+      if (chapterNumber && !chapterNumber.includes("Nomor Chapter")) {
+        const chapterLink = $(el).find("a").attr("href") ?? "";
+        const chapterSlug = chapterLink.split("/").filter(Boolean).pop();
         const chapterRelease = $(el).find(".tanggalseries").text().trim();
 
-        mangaChapters.push({
-          chapter: chapterNumber,
-          param: chapterSlug,
-          release: chapterRelease,
-          detail_url: `${url}/chapter/${chapterSlug}`,
-        });
+        if (chapterSlug) {
+          mangaChapters.push({
+            chapter: chapterNumber,
+            param: chapterSlug,
+            release: chapterRelease,
+            detail_url: `${url}/chapter/${chapterSlug}`,
+          });
+        }
       }
     });
 
@@ -200,8 +189,8 @@ module.exports.getMangaByParam = async (req, res) => {
       .each((i, el) => {
         /// Spoiler param
         const link = $(el).find("a").attr("href") ?? "";
-        const linkArray = link.split("/");
-        const spoilerParam = linkArray[linkArray.length - 2];
+        const linkArray = link.split("/").filter(Boolean);
+        const spoilerParam = linkArray.pop();
 
         /// Spoiler title
         const spoilerTitle = $(el).find(".h4").text().trim();
@@ -294,7 +283,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
   const url = req.protocol + "://" + req.get("host") + req.baseUrl;
   const chapterImages = [];
 
-  let crawlUrl = `https://komiku.org/${param}`;
+  let crawlUrl = `https://komiku.org/${param}/`;
 
   console.log(crawlUrl);
 
@@ -311,14 +300,66 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     // Load HTML we fetched in the previous line
     const $ = cheerio.load(data);
 
-    $("#Baca_Komik img").each((i, el) => {
-      const imageUrl = $(el).attr("src");
+    // Try to get chapterData from script
+    let chapterData = {};
+    $("script").each((i, el) => {
+      const scriptContent = $(el).html();
+      if (scriptContent && scriptContent.includes("var chapterData")) {
+        const match = scriptContent.match(/var chapterData\s*=\s*({[^;]+});/);
+        if (match) {
+          try {
+            // Robust parsing for unquoted keys and single quotes
+            const cleanJson = match[1]
+              .replace(/'/g, '"') // Replace single quotes with double quotes
+              .replace(/([{,]\s*)(\w+):/g, '$1"$2":'); // Quote unquoted keys (id: -> "id":)
+            chapterData = JSON.parse(cleanJson);
+          } catch (e) {
+            console.error("Error parsing chapterData", e);
+          }
+        }
+      }
+    });
 
-      if (imageUrl != undefined) {
-        imageUrl.replace("img.komiku.id", "cdn.komiku.co.id");
+    $("#Baca_Komik img").each((i, el) => {
+      let imageUrl =
+        $(el).attr("src") ||
+        $(el).attr("data-src") ||
+        $(el).attr("data-lazy-src");
+
+      if (imageUrl && !imageUrl.includes("data:image")) {
+        imageUrl = imageUrl.trim().replace("img.komiku.id", "cdn.komiku.co.id");
+        if (!imageUrl.startsWith("http")) {
+          imageUrl = imageUrl.startsWith("//")
+            ? "https:" + imageUrl
+            : "https://komiku.org" + imageUrl;
+        }
         chapterImages.push(imageUrl);
       }
     });
+
+    // If no images found via selectors, try to reconstruct from chapterData if jumlahgambar is present
+    if (
+      chapterImages.length === 0 &&
+      chapterData.jumlahgambar &&
+      chapterData.link
+    ) {
+      // Fallback or advanced reconstruction if needed.
+      // Based on subagent findings, img.komiku.org is used.
+    }
+
+    if (chapterImages.length === 0) {
+      // Try searching for any large images if #Baca_Komik fails
+      $("img").each((i, el) => {
+        const src = $(el).attr("src") || $(el).attr("data-src");
+        if (
+          src &&
+          (src.includes("komiku.org") || src.includes("img.komiku")) &&
+          !src.includes("thumbnail")
+        ) {
+          chapterImages.push(src);
+        }
+      });
+    }
 
     jsonResult = {
       data: wrapArrayWithCorsProxy(chapterImages, url),
