@@ -54,7 +54,7 @@ module.exports.getLatestManga = async (req, res) => {
         type: item.data?.format || item.data?.type || item.type,
         param: item.data?.slug || item.slug,
         rating: (item.data?.rating || item.rating)?.toString() || "0",
-        latest_chapter: item.chapters?.[0]?.data?.index || null,
+        latest_chapter: (item.chapters?.[0]?.chapterIndex || item.chapters?.[0]?.data?.index)?.toString() || null,
         detail_url: `${url}/${item.data?.slug || item.slug}`,
       };
     });
@@ -111,12 +111,15 @@ module.exports.getMangaByParam = async (req, res) => {
     );
     const chapters = chaptersResponse.data.data || [];
 
-    const mangaChapters = chapters.map((ch) => ({
-      chapter: ch.data.index.toString(),
-      slug: ch.data.index.toString(), // Use index as slug for the next API call
-      release: ch.createdAt,
-      detail_url: `${url}/chapter/${param}/${ch.data.index}`,
-    }));
+    const mangaChapters = chapters.map((ch) => {
+      const index = ch.chapterIndex || ch.data?.index;
+      return {
+        chapter: index?.toString(),
+        slug: index?.toString(), // Use index as slug for the next API call
+        release: ch.createdAt,
+        detail_url: `${url}/chapter/${param}/${index}`,
+      };
+    });
 
     const jsonResult = {
       data: {
