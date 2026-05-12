@@ -24,7 +24,35 @@ npm run start
 # Sample Result
 
 - Note that this scraper is deployed on a `free Render service`, so `some features may not work properly` and, it maybe `out of quota` sometimes.
-- Looks like `our free IP/Domain has been blocked by Anoboy`, it keeps returning 403 error. If you want to test Anoboy services kindly clone the repo and test it on your local machine.
+- Looks like `our free IP/Domain has been blocked by Anoboy and Komikcast` on some VPS providers, returning 403 errors.
+
+### Handling 403 Errors (Proxy)
+
+If you are running this on a VPS and encounter a `403 Forbidden` error (especially for Komikcast), it means the hosting IP is blocked by Cloudflare.
+
+To fix this, you can set a proxy in `services/manga-service-v2.js`:
+
+```javascript
+const proxyConfig = {
+  protocol: "http",
+  host: "your-proxy-ip",
+  port: your - port,
+  auth: {
+    username: "your-username",
+    password: "your-password",
+  },
+};
+
+const axiosConfig = {
+  timeout: 15000,
+  proxy: proxyConfig,
+  headers: {
+    // ... headers
+  },
+};
+```
+
+Or ideally, use the `KOMIKCAST_PROXY` environment variable if the logic is implemented to read from `.env`.
 
 #### 1. Anoboy
 
