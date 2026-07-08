@@ -1,0 +1,36 @@
+name: Deploy Weebs_Scraper to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Load NVM to make node, npm, and pm2 available
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            
+            # Navigate to directory and pull latest code
+            cd ~/Weebs_Scraper
+            echo "pulling latest code..."
+            git pull origin master
+            
+            # Install production dependencies
+            echo "installing dependencies..."
+            npm install --production
+            
+            # Restart PM2 process
+            echo "restarting service..."
+            pm2 restart weebs-scraper --update-env || pm2 start weebs-api-index.js --name weebs-scraper
