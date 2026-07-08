@@ -31,9 +31,9 @@ async function parseAnimeByParam(tempParam, url) {
 
     // Video Links
     var videoLinks =
-      embedLinks.blogger.length > 1
+      embedLinks.blogger.length > 0
         ? embedLinks.blogger
-        : embedLinks.yup.length > 1
+        : embedLinks.yup.length > 0
         ? embedLinks.yup
         : embedLinks.archiveEmbedLinks;
 
@@ -115,10 +115,18 @@ async function parseAnimeByParam(tempParam, url) {
     }
 
     // Add Direct Links
-    if (embedLinks.yupDirectLinks.length > 1) {
-      jsonResult["data"]["video_direct_links"] = embedLinks.yupDirectLinks;
+    const directLinks = [];
+    if (embedLinks.yupDirectLinks && embedLinks.yupDirectLinks.length > 0) {
+      directLinks.push(...embedLinks.yupDirectLinks.filter(link => link && !link.error));
+    }
+    if (embedLinks.bloggerDirectLinks && embedLinks.bloggerDirectLinks.length > 0) {
+      directLinks.push(...embedLinks.bloggerDirectLinks.filter(link => link && !link.error));
+    }
+    if (directLinks.length > 0) {
+      jsonResult["data"]["video_direct_links"] = directLinks;
     }
   } catch (err) {
+    console.error("Error in parseAnimeByParam:", err);
     /// Return error json data
     jsonResult = {
       data: {},

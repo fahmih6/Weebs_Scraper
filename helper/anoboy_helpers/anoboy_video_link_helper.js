@@ -50,26 +50,36 @@ class AnoboyEmbedLinkHelper {
     let mirrorElements = $(".vmiror");
 
     // Main links
-    let mainLink = `https://www.blogger.com/video.g?token=${
-      $("#mediaplayer").attr("src")?.split("=")[1]
-    }`;
-
-    // Current main link resolution
-    let mainRes = mirrorElements.eq(0).find(".active").text() + "P";
-
-    // Check the main link, if main link consist of blogger, then parse it as blogger
-    if (mainLink?.includes("blogger.com")) {
-      bloggerEmbedLinks.push({
-        resolution: mainRes,
-        link: mainLink,
-      });
+    const mainSrc = $("#mediaplayer").attr("src");
+    let mainLink = null;
+    let mainRes = mirrorElements.eq(0).find(".active").text()?.trim() || "";
+    mainRes = mainRes.replace(/PC\s+/i, "");
+    if (mainRes && !mainRes.toLowerCase().endsWith("p")) {
+      mainRes += "P";
     }
-    // If main link is consist of stream, then it's archive link
-    else if (mainLink?.includes(this.archiveMarker)) {
-      archiveEmbedLinks.push({
-        resolution: mainRes,
-        link: `${process.env.ANOBOY_LINK}${mainLink}`,
-      });
+
+    if (mainSrc) {
+      if (mainSrc.includes("blogger.com")) {
+        mainLink = mainSrc;
+        bloggerEmbedLinks.push({
+          resolution: mainRes,
+          link: mainLink,
+        });
+      } else if (mainSrc.includes(this.blogMarker)) {
+        const token = mainSrc.split("url=")[1]?.split("&")[0] || mainSrc.split("=")[1]?.split("&")[0];
+        if (token) {
+          mainLink = `https://www.blogger.com/video.g?token=${token}`;
+          bloggerEmbedLinks.push({
+            resolution: mainRes,
+            link: mainLink,
+          });
+        }
+      } else if (mainSrc.includes(this.archiveMarker)) {
+        archiveEmbedLinks.push({
+          resolution: mainRes,
+          link: mainSrc.startsWith("http") ? mainSrc : `${process.env.ANOBOY_LINK}${mainSrc}`,
+        });
+      }
     }
 
     /// Blogger promises
@@ -80,28 +90,47 @@ class AnoboyEmbedLinkHelper {
 
     // Loop through all mirrors
     mirrorElements.each((index, element) => {
-      // Get element.
-      let _el = $(element).find("#allmiror");
+      // Find all anchors inside this mirror container
+      const anchors = $(element).find("a");
 
-      // Get embed link.
-      let _link = _el.attr("data-video")?.includes(this.blogMarker)
-        ? _el.eq(1).attr("data-video")
-        : _el.attr("data-video");
+      anchors.each((i, anchor) => {
+        const _el = $(anchor);
+        const _link = _el.attr("data-video");
+        if (!_link) return;
 
-      // Get resolution.
-      let _resolution = _el.text();
+        let _resolution = _el.text().trim();
+        _resolution = _resolution.replace(/PC\s+/i, "");
+        if (!_resolution.toLowerCase().endsWith("p")) {
+          _resolution += "P";
+        }
 
-      // If link contains blogger, then append to the blogger.
-      if (_link?.includes(this.blogMarker)) {
-        blogBatchLink = `${process.env.ANOBOY_LINK}${_link}`;
-      } else if (_link?.includes(this.yupMarker)) {
-        yupBatchLink = `${process.env.ANOBOY_LINK}${_link}`;
-      } else if (_link?.includes(this.archiveMarker)) {
-        archiveEmbedLinks.push({
-          resolution: _resolution,
-          link: `${process.env.ANOBOY_LINK}${_link}`,
-        });
-      }
+        // If link contains blogger, then append to the blogger.
+        if (_link.includes(this.blogMarker)) {
+          const token = _link.split("url=")[1]?.split("&")[0] || _link.split("=")[1]?.split("&")[0];
+          if (token) {
+            const embedLink = `https://www.blogger.com/video.g?token=${token}`;
+            // Avoid duplicate with mainLink if already pushed
+            if (!bloggerEmbedLinks.some(item => item.link === embedLink)) {
+              bloggerEmbedLinks.push({
+                resolution: _resolution,
+                link: embedLink,
+              });
+            }
+          } else {
+            blogBatchLink = `${process.env.ANOBOY_LINK}${_link}`;
+          }
+        } else if (_link.includes(this.yupMarker)) {
+          yupBatchLink = `${process.env.ANOBOY_LINK}${_link}`;
+        } else if (_link.includes(this.archiveMarker)) {
+          const embedLink = _link.startsWith("http") ? _link : `${process.env.ANOBOY_LINK}${_link}`;
+          if (!archiveEmbedLinks.some(item => item.link === embedLink)) {
+            archiveEmbedLinks.push({
+              resolution: _resolution,
+              link: embedLink,
+            });
+          }
+        }
+      });
     });
 
     // If both blog and yup batch link is not null.
@@ -149,9 +178,9 @@ class AnoboyEmbedLinkHelper {
     }
 
     // MARK: - Get blogger direct links //
-    // if (bloggerEmbedLinks != null) {
-    //   bloggerDirectLinks = await getBatchBloggerDirectLink(bloggerEmbedLinks);
-    // }
+    if (bloggerEmbedLinks != null) {
+      bloggerDirectLinks = await getBatchBloggerDirectLink(bloggerEmbedLinks);
+    }
 
     // MARK: - Get archive direct links //
     // let archivePromises = [];
