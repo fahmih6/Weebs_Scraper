@@ -1,6 +1,6 @@
 # Weebs Scraper
 
-Web scraper for Anoboy, Komiku, and Komikcast. Build using Node JS.
+Web scraper for Anoboy, Komiku, Komikcast, and Voratoon. Build using Node JS.
 
 # Getting Started
 
@@ -100,4 +100,30 @@ https://weeb-scraper.onrender.com/api/komikcast
 
 ```
 https://weeb-scraper.onrender.com/api/komikcast?s=Kaguya
+```
+
+#### 4. Voratoon
+
+- [Get Latest Mangas](https://weeb-scraper.onrender.com/api/voratoon)
+
+```
+https://weeb-scraper.onrender.com/api/voratoon
+```
+
+- [Search Certain Manga](https://weeb-scraper.onrender.com/api/voratoon?s=the+bully)
+
+```
+https://weeb-scraper.onrender.com/api/voratoon?s=the+bully
+```
+
+- [Get Manga Detail](https://weeb-scraper.onrender.com/api/voratoon/ota-kun-ni-dake-yasashisugiru-ayame-san)
+
+```
+https://weeb-scraper.onrender.com/api/voratoon/ota-kun-ni-dake-yasashisugiru-ayame-san
+```
+
+- [Get Chapter Images](https://weeb-scraper.onrender.com/api/voratoon/chapter/ota-kun-ni-dake-yasashisugiru-ayame-san/1)
+
+```
+https://weeb-scraper.onrender.com/api/voratoon/chapter/ota-kun-ni-dake-yasashisugiru-ayame-san/1
 ```

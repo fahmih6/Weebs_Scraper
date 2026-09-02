@@ -17,6 +17,9 @@ app.use("/api/komikcast/", require("./routes/manga-route.js"));
 /// Use Komiku route
 app.use("/api/komiku/", require("./routes/komiku-route.js"));
 
+/// Use Voratoon route
+app.use("/api/voratoon/", require("./routes/voratoon-route.js"));
+
 /// Use Anoboy route
 app.use("/api/anoboy/", require("./routes/anoboy-route.js"));
 
