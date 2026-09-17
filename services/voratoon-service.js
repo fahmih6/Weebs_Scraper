@@ -52,6 +52,25 @@ function chapterIndexOf(chapter) {
 }
 
 /**
+ * The series endpoint no longer embeds chapters even when `takeChapter=1` is
+ * supplied. Use the published chapter count as a fallback for list results.
+ * @param {object} item
+ * @returns {number|string|null}
+ */
+function latestChapterOf(item) {
+  return (
+    chapterIndexOf(item?.chapters?.[0]) ??
+    item?.data?.totalChapters ??
+    item?.totalChapters ??
+    null
+  );
+}
+
+function trimString(value) {
+  return typeof value === "string" ? value.trim() : value;
+}
+
+/**
  * Get latest manga updates or search for manga
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -80,7 +99,7 @@ module.exports.getLatestManga = async (req, res) => {
 
     const mangaList = seriesItems.map((item) => {
       const slug = item.data?.slug || item.slug;
-      const latestChapter = chapterIndexOf(item.chapters?.[0]);
+      const latestChapter = latestChapterOf(item);
 
       return {
         title: item.data?.title || item.title,
@@ -177,7 +196,11 @@ module.exports.getMangaByParam = async (req, res) => {
           url,
           VORATOON_LINK
         ),
-        synopsis: series.data?.synopsis?.trim() || series.synopsis?.trim(),
+        synopsis:
+          trimString(series.data?.synopsis) ||
+          trimString(series.synopsis) ||
+          trimString(series.data?.summary) ||
+          trimString(series.summary),
         meta_info: {
           status: series.data?.status || series.status,
           author: series.data?.author || series.author,
@@ -187,10 +210,9 @@ module.exports.getMangaByParam = async (req, res) => {
             series.data?.totalChapters || chapters.length
           )?.toString(),
         },
-        genre:
-          series.data?.genres?.map((g) => g.data?.name || g.name) ||
-          series.genres?.map((g) => g.data?.name || g.name) ||
-          [],
+        genre: (series.data?.genres || series.genres || []).map(
+          (g) => g.data?.name || g.name || g.title
+        ),
         chapters: mangaChapters,
       },
     };
@@ -234,9 +256,10 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     );
 
     // Images can be in the 'images' array or the 'dataImages' map
-    let chapterImages = data.data?.data?.images || [];
-    if (chapterImages.length === 0 && data.data?.data?.dataImages) {
-      chapterImages = Object.values(data.data.data.dataImages);
+    const chapterData = data.data?.data || data.data || {};
+    let chapterImages = chapterData.images || [];
+    if (chapterImages.length === 0 && chapterData.dataImages) {
+      chapterImages = Object.values(chapterData.dataImages);
     }
 
     const jsonResult = {
