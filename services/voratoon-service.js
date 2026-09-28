@@ -12,10 +12,12 @@ const {
  * JSON API at api.voratoon.com directly instead of scraping the Next.js pages.
  */
 
+// v1.voratoon.com redirects to v2 and the API rejects the v1 origin with 403,
+// so v2 must stay the default origin/referer.
 const VORATOON_LINK =
   process.env.VORATOON_LINK ||
   process.env.VORAATOON_LINK ||
-  "https://v1.voratoon.com";
+  "https://v2.voratoon.com";
 const VORATOON_API = process.env.VORATOON_API_LINK || "https://api.voratoon.com";
 
 const TAKE_PER_PAGE = 20;
