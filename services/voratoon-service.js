@@ -1,5 +1,9 @@
-const { default: axios } = require("axios");
 const cache = require("../helper/cache-helper.js");
+const {
+  VORATOON_API,
+  getVoratoonLink,
+  voratoonGet,
+} = require("../helper/voratoon-origin-helper.js");
 const {
   wrapWithCorsProxy,
   wrapArrayWithCorsProxy,
@@ -10,28 +14,11 @@ const {
  *
  * Voratoon runs the same backend as Komikcast, so this service talks to the
  * JSON API at api.voratoon.com directly instead of scraping the Next.js pages.
+ * The API's required origin is resolved by ../helper/voratoon-origin-helper.js,
+ * which also handles re-discovery when the site moves to a new domain.
  */
 
-// The API rejects stale-site origins with 403 and v4.voratoon.com now
-// redirects to v5, so v5 must stay the default origin/referer.
-const VORATOON_LINK =
-  process.env.VORATOON_LINK ||
-  process.env.VORAATOON_LINK ||
-  "https://v5.voratoon.com";
-const VORATOON_API = process.env.VORATOON_API_LINK || "https://api.voratoon.com";
-
 const TAKE_PER_PAGE = 20;
-
-const axiosConfig = {
-  proxy: false,
-  timeout: 15000,
-  headers: {
-    origin: VORATOON_LINK,
-    referer: VORATOON_LINK,
-    "user-agent":
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
-  },
-};
 
 /**
  * Build the cache key for a request, scoped by host so proxied URLs
@@ -96,8 +83,9 @@ module.exports.getLatestManga = async (req, res) => {
     : `${VORATOON_API}/series?preset=rilisan_terbaru&take=${TAKE_PER_PAGE}&takeChapter=1&page=${page}`;
 
   try {
-    const { data } = await axios.get(crawlUrl, axiosConfig);
+    const { data } = await voratoonGet(crawlUrl);
     const seriesItems = data.data || [];
+    const origin = await getVoratoonLink();
 
     const mangaList = seriesItems.map((item) => {
       const slug = item.data?.slug || item.slug;
@@ -108,7 +96,7 @@ module.exports.getLatestManga = async (req, res) => {
         thumbnail: wrapWithCorsProxy(
           item.data?.coverImage || item.data?.cover || item.cover,
           url,
-          VORATOON_LINK
+          origin
         ),
         type: item.data?.format || item.data?.type || item.type,
         param: slug,
@@ -160,9 +148,8 @@ module.exports.getMangaByParam = async (req, res) => {
 
   try {
     // 1. Fetch Series Detail
-    const detailResponse = await axios.get(
-      `${VORATOON_API}/series/${param}?includeMeta=true`,
-      axiosConfig
+    const detailResponse = await voratoonGet(
+      `${VORATOON_API}/series/${param}?includeMeta=true`
     );
     const series = detailResponse.data.data;
 
@@ -171,11 +158,11 @@ module.exports.getMangaByParam = async (req, res) => {
     }
 
     // 2. Fetch Chapters (the detail response only carries the latest few)
-    const chaptersResponse = await axios.get(
-      `${VORATOON_API}/series/${param}/chapters`,
-      axiosConfig
+    const chaptersResponse = await voratoonGet(
+      `${VORATOON_API}/series/${param}/chapters`
     );
     const chapters = chaptersResponse.data.data || [];
+    const origin = await getVoratoonLink();
 
     const mangaChapters = chapters
       .map((ch) => {
@@ -196,7 +183,7 @@ module.exports.getMangaByParam = async (req, res) => {
         thumbnail: wrapWithCorsProxy(
           series.data?.coverImage || series.data?.cover || series.cover,
           url,
-          VORATOON_LINK
+          origin
         ),
         synopsis:
           trimString(series.data?.synopsis) ||
@@ -252,10 +239,10 @@ module.exports.getMangaChapterByParam = async (req, res) => {
   }
 
   try {
-    const { data } = await axios.get(
-      `${VORATOON_API}/series/${param}/chapters/${chapter}`,
-      axiosConfig
+    const { data } = await voratoonGet(
+      `${VORATOON_API}/series/${param}/chapters/${chapter}`
     );
+    const origin = await getVoratoonLink();
 
     // Images can be in the 'images' array or the 'dataImages' map
     const chapterData = data.data?.data || data.data || {};
@@ -265,7 +252,7 @@ module.exports.getMangaChapterByParam = async (req, res) => {
     }
 
     const jsonResult = {
-      data: wrapArrayWithCorsProxy(chapterImages, url, VORATOON_LINK),
+      data: wrapArrayWithCorsProxy(chapterImages, url, origin),
     };
 
     cache.set(cacheKey, jsonResult, 300000);
