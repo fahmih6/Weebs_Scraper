@@ -12,8 +12,7 @@ const {
 /**
  * Voratoon Manga Service
  *
- * Voratoon runs the same backend as Komikcast, so this service talks to the
- * JSON API at api.voratoon.com directly instead of scraping the Next.js pages.
+ * Talks directly to the JSON API at api.voratoon.com.
  * The API's required origin is resolved by ../helper/voratoon-origin-helper.js,
  * which also handles re-discovery when the site moves to a new domain.
  */

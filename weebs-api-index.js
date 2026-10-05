@@ -11,8 +11,14 @@ app.use(morgan("dev"));
 
 app.use(express.json());
 
-/// Use Komikcast route
-app.use("/api/komikcast/", require("./routes/manga-route.js"));
+// Komikcast is EOS; Voratoon serves manga.
+app.use("/api/komikcast", (req, res) => {
+  res.status(410).json({
+    status: 410,
+    error: "Komikcast is End of Service (EOS). Use /api/voratoon instead.",
+    migration_url: "/api/voratoon",
+  });
+});
 
 /// Use Komiku route
 app.use("/api/komiku/", require("./routes/komiku-route.js"));
