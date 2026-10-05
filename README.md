@@ -23,7 +23,39 @@ npm run start
 # Sample Result
 
 - Note that this scraper is deployed on a free Render service, so some features may take time to respond or run out of quota.
-- Some hosting IP addresses may be blocked by upstream providers, returning 403 errors.
+- Some hosting IP addresses may be blocked by upstream providers (such as Cloudflare on Voratoon or Anoboy), returning 403 errors.
+
+### Handling 403 Errors (Proxy)
+
+If you are running this on a VPS and encounter a `403 Forbidden` error (especially for Voratoon), the hosting IP is likely blocked by Cloudflare.
+
+To address this, configure a proxy in `helper/voratoon-origin-helper.js`:
+
+```javascript
+const proxyConfig = {
+  protocol: "http",
+  host: "your-proxy-ip",
+  port: your-port,
+  auth: {
+    username: "your-username",
+    password: "your-password",
+  },
+};
+
+function axiosConfigFor(origin) {
+  return {
+    proxy: proxyConfig,
+    timeout: 15000,
+    headers: {
+      origin,
+      referer: `${origin}/`,
+      "user-agent": USER_AGENT,
+    },
+  };
+}
+```
+
+Or configure proxy environment variables (`VORATOON_PROXY` or HTTP proxy settings) if your deployment environment supports them.
 
 #### 1. Anoboy
 
